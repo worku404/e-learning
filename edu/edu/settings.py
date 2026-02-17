@@ -59,6 +59,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",          # Third-party middleware
     "django.middleware.security.SecurityMiddleware",            # Built-in: security headers and protections
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",     # Built-in: session support
 
     # Enable these only if full-site cache middleware is needed:
@@ -135,7 +136,7 @@ STATIC_URL = "static/"
 MEDIA_URL = "media/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_ROOT = BASE_DIR / "media"
-
+STATIC_FILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Security headers
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
