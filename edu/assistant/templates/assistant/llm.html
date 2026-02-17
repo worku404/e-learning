@@ -1,0 +1,246 @@
+<div class="assistance-toolbar">
+  <span class="assistance-title">AI Assistant</span>
+  <div class="assistance-toolbar-actions">
+    {% comment %} <button id="assistant-hide-btn" class="assistance-action" type="button" aria-label="Hide AI assistant">
+      Hide
+    </button> {% endcomment %}
+    <button id="assistant-close-btn" class="assistance-close" type="button" aria-label="Close AI sidebar">
+      &times;
+    </button>
+  </div>
+</div>
+
+<div id="history-container" class="llm-history"></div>
+{{ llm_history|json_script:"llm-history" }}
+
+<form id="llm-form" class="llm-form" autocomplete="off">
+  {% csrf_token %}
+  <div class="llm-input">
+    {{ llm_form.prompt }}
+  </div>
+  <div class="llm-controls">
+    <button class="llm-btn llm-btn--icon" type="button" aria-label="Add">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
+      </svg>
+    </button>
+    <button class="llm-btn llm-btn--send" type="submit" aria-label="Send message">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19v-8" />
+      </svg>
+    </button>
+  </div>
+</form>
+
+
+<script>
+  const bodyEl = document.body;
+  const assistantPanel = document.getElementById("assistant-panel");
+  const assistantLauncher = document.getElementById("assistant-unhide");
+  {% comment %} const assistantHideBtn = document.getElementById("assistant-hide-btn"); {% endcomment %}
+  const assistantCloseBtn = document.getElementById("assistant-close-btn");
+  const assistantUiStateKey = "assistant_ui_state";
+
+  const persistAssistantState = (state) => {
+    try {
+      localStorage.setItem(assistantUiStateKey, state);
+    } catch (error) {
+      // Ignore storage failures (private mode / blocked storage).
+    }
+  };
+
+  const updateAssistantOffset = () => {
+    const header = document.getElementById("header");
+    const offset = header ? header.offsetHeight : 0;
+    document.documentElement.style.setProperty("--assistant-top-offset", `${offset}px`);
+  };
+
+  const syncAssistantLauncher = () => {
+    if (!assistantLauncher) return;
+    const isHidden = bodyEl.classList.contains("assistant-hidden");
+    assistantLauncher.setAttribute("aria-expanded", String(!isHidden));
+  };
+
+  const showInlineAssistant = () => {
+    bodyEl.classList.remove("assistant-hidden");
+    bodyEl.classList.remove("assistant-sidebar-open");
+    persistAssistantState("inline");
+    syncAssistantLauncher();
+  };
+
+  const hideAssistant = () => {
+    bodyEl.classList.add("assistant-hidden");
+    bodyEl.classList.remove("assistant-sidebar-open");
+    persistAssistantState("hidden");
+    syncAssistantLauncher();
+  };
+
+  const openAssistantSidebar = () => {
+    bodyEl.classList.remove("assistant-hidden");
+    bodyEl.classList.add("assistant-sidebar-open");
+    persistAssistantState("sidebar");
+    syncAssistantLauncher();
+  };
+
+  if (assistantPanel) {
+    updateAssistantOffset();
+    window.addEventListener("resize", updateAssistantOffset);
+
+    //if (assistantHideBtn) {
+    //  assistantHideBtn.addEventListener("click", hideAssistant);
+    //}
+    if (assistantCloseBtn) {
+      assistantCloseBtn.addEventListener("click", hideAssistant);
+    }
+    if (assistantLauncher) {
+      assistantLauncher.addEventListener("click", () => {
+        openAssistantSidebar();
+        const prompt = document.getElementById("id_prompt");
+        if (prompt) prompt.focus();
+      });
+    }
+
+    // Always start collapsed: show only AI launcher button until user opens it.
+    hideAssistant();
+  }
+
+  const historyEl = document.getElementById("llm-history");
+  let history = [];
+
+  if (historyEl) {
+    try {
+      const parsedHistory = JSON.parse(historyEl.textContent || "[]");
+      history = Array.isArray(parsedHistory) ? parsedHistory : [];
+    } catch (error) {
+      history = [];
+    }
+  }
+
+  const escapeHtml = (value) =>
+    String(value).replace(/[&<>"']/g, (char) => {
+      const map = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      };
+      return map[char] || char;
+    });
+
+  const waitingMarkup = () =>
+    `
+      <span class="llm-wait" role="status" aria-live="polite" aria-label="Assistant is thinking">
+        <span class="llm-wait__dot"></span>
+        <span class="llm-wait__dot"></span>
+        <span class="llm-wait__dot"></span>
+      </span>
+    `.trim();
+
+
+  function renderHistory() {
+    const container = document.getElementById("history-container");
+    if (!container) return;
+
+    container.innerHTML = "";
+    history.forEach((item) => {
+      const entry = document.createElement("div");
+      entry.className = "llm-chat-entry";
+      entry.innerHTML = `
+        <div class="llm-chat-row llm-chat-row--user">
+          <div class="llm-chat-bubble llm-chat-bubble--user">
+            <div class="llm-chat-msg">${escapeHtml(item.prompt)}</div>
+          </div>
+        </div>
+        <div class="llm-chat-row llm-chat-row--ai">
+          <div class="llm-chat-bubble llm-chat-bubble--ai">
+            <div class="llm-chat-msg">${item.response}</div>
+          </div>
+        </div>
+      `;
+      container.appendChild(entry);
+    });
+    container.scrollTop = container.scrollHeight;
+  }
+  renderHistory();
+  const form = document.getElementById("llm-form");
+  const promptInput = document.getElementById("id_prompt");
+  if (form && promptInput) {
+    const sendBtn = form.querySelector('button[type="submit"]');
+    const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    const csrfToken = csrfInput ? csrfInput.value : "";
+    const maxInputHeight = 152;
+
+    const autoGrow = () => {
+      promptInput.style.height = "auto";
+      const next = Math.min(promptInput.scrollHeight, maxInputHeight);
+      promptInput.style.height = `${next}px`;
+      promptInput.style.overflowY =
+        promptInput.scrollHeight > maxInputHeight ? "auto" : "hidden";
+    };
+
+    autoGrow();
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const prompt = promptInput.value.trim();
+      if (!prompt) return;
+
+      openAssistantSidebar();
+      sendBtn.disabled = true;
+      let aiResponse = waitingMarkup();
+      history.push({ prompt: prompt, response: aiResponse });
+      renderHistory();
+
+      try {
+        const response = await fetch("{% url 'assistant:llm_generate' %}", {
+          method: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": csrfToken,
+          },
+          credentials: "same-origin",
+          body: new URLSearchParams({ prompt: prompt }),
+        });
+
+        let data = {};
+        try {
+          data = await response.json();
+        } catch (err) {
+          data = {};
+        }
+
+        if (!response.ok) {
+          const detailMessage =
+            data.details && (data.details.message || data.details.error);
+          const message = detailMessage
+            ? `${data.error || "Request failed."} (${detailMessage})`
+            : data.error || `Request failed (${response.status}).`;
+          aiResponse = escapeHtml(message);
+        } else {
+          aiResponse = data.generated || escapeHtml(data.error || "Something went wrong.");
+        }
+      } catch (error) {
+        aiResponse = "Network error. Please try again.";
+      } finally {
+        history[history.length - 1].response = aiResponse;
+        renderHistory();
+        promptInput.value = "";
+        autoGrow();
+        sendBtn.disabled = false;
+        promptInput.focus();
+      }
+    });
+
+    promptInput.addEventListener("input", autoGrow);
+
+    promptInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        form.dispatchEvent(new Event("submit"));
+      }
+    });
+  }
+</script>

@@ -1,0 +1,198 @@
+.app-body {
+    --util-width: var(--rail-right);
+}
+
+.app-body.has-assistant.assistant-hidden {
+    --util-width: 0px;
+}
+
+.skip-link {
+    position: absolute;
+    left: var(--space-4);
+    top: -120px;
+    z-index: 2000;
+    background: var(--color-accent);
+    color: #fff;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
+    transition: top 0.12s ease-in-out;
+}
+
+.skip-link:focus-visible {
+    top: var(--space-4);
+}
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1100;
+    background: linear-gradient(120deg, var(--color-primary) 0%, #2f9e63 100%);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 70%, black);
+}
+
+.topbar__inner {
+    min-height: var(--topbar-height);
+    margin: 0 auto;
+    padding: var(--space-3) var(--space-5);
+    max-width: 1600px;
+    display: grid;
+    grid-template-columns: auto minmax(340px, 1fr) auto;
+    gap: var(--space-4);
+    align-items: center;
+}
+
+/* Base Brand Container */
+.topbar__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px; /* Increased gap slightly for the icon */
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(255,215,0,0.1), rgba(255,105,180,0.1));
+    border: 1px solid rgba(255, 215, 0, 0.2); /* Added subtle border for depth */
+    box-shadow: 0 4px 14px rgba(255,105,180,0.15);
+    text-decoration: none;
+    transition: all 0.3s ease; /* Smooth hover animation */
+}
+
+/* Hover Effect */
+.topbar__brand:hover {
+    box-shadow: 0 6px 20px rgba(255,105,180,0.3);
+    transform: translateY(-1px);
+}
+
+/* Icon Sizing */
+.brand-icon {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease;
+}
+
+.topbar__brand:hover .brand-icon {
+    transform: scale(1.1); /* Icon pops slightly on hover */
+}
+
+/* Typography Styling */
+.brand-text {
+    font-size: var(--fs-3, 1.2rem);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.brand-primary {
+    color: #ffd54f;
+    font-weight: 800;
+}
+
+.brand-divider {
+    color: #ffe0ea;
+    margin: 0 2px;
+}
+
+.brand-secondary {
+    color: #ff9ec5;
+    font-weight: 800;
+}
+
+.topbar__actions {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.topbar__actions form {
+    margin: 0;
+}
+
+.l-shell {
+    max-width: 1700px;
+    margin: 0 auto;
+    padding: var(--space-4);
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: var(--rail-left) minmax(0, 1fr) var(--util-width);
+    align-items: start;
+    transition: grid-template-columns 0.2s ease;
+}
+
+.l-rail,
+.l-main,
+.l-util {
+    min-width: 0;
+}
+
+.l-rail--left {
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-4));
+    display: grid;
+    gap: var(--space-4);
+}
+
+.l-main__inner {
+    max-width: var(--main-max);
+    display: grid;
+    gap: var(--space-5);
+}
+
+.l-util {
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-4));
+}
+
+.app-body.has-assistant.assistant-hidden .l-util {
+    overflow: visible;
+    pointer-events: none;
+}
+
+.app-body.has-assistant.assistant-hidden .l-util > * {
+    pointer-events: auto;
+}
+
+@media (max-width: 1200px) {
+    :root {
+        --rail-left: 240px;
+        --rail-right: 340px;
+    }
+
+    .topbar__inner {
+        grid-template-columns: auto minmax(260px, 1fr) auto;
+        padding-inline: var(--space-4);
+    }
+}
+
+@media (max-width: 900px) {
+    .topbar__inner {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+        align-items: start;
+    }
+
+    .topbar__actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .l-shell {
+        grid-template-columns: 1fr;
+        padding: var(--space-3);
+    }
+
+    .l-rail--left {
+        position: static;
+    }
+
+    .l-util {
+        position: static;
+    }
+
+    .app-body.has-assistant:not(.assistant-hidden) .l-util .assistance {
+        position: fixed;
+        top: var(--topbar-height);
+        right: 0;
+        width: min(95vw, 420px);
+        max-height: calc(100vh - var(--topbar-height));
+        z-index: 1200;
+        border-left: 1px solid var(--color-border);
+        box-shadow: -8px 0 24px rgba(var(--color-shadow), 0.12);
+    }
+}

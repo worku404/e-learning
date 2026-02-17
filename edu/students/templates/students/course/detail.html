@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load cache %}
+{% block title %}
+    {{ object.title }}
+{% endblock %}
+{% block content %}
+    <section class="page page--workspace c-stack">
+        <header class="page-heading">
+            <h1 class="page-title">{{ object.title }}</h1>
+            <p class="page-subtitle">
+                {% if module %}
+                    Current module: {{ module.title }}
+                {% else %}
+                    Start with the first available module.
+                {% endif %}
+            </p>
+        </header>
+
+        <div class="course-workspace">
+            <aside class="contents c-card" aria-label="Module navigation">
+                <h2 class="c-card__title">Modules</h2>
+                <ul id="modules" class="c-module-list">
+                    {% for m in object.modules.all %}
+                        <li data-id="{{ m.id }}" class="c-module-item {% if m == module %}selected{% endif %}">
+                            <a href="{% url 'student_course_detail_module' object.id m.id %}">
+                                <span>
+                                    Module <span class="order">{{ m.order|add:1 }}</span>
+                                </span>
+                                {{ m.title }}
+                            </a>
+                        </li>
+                    {% empty %}
+                        <li class="c-module-item">No modules yet.</li>
+                    {% endfor %}
+                </ul>
+            </aside>
+
+            <section class="module c-stack c-reader" aria-label="Module content">
+                {% if module %}
+                    {% cache 600 module_contents module %}
+                        {% for content in module.contents.all %}
+                            {% with item=content.item %}
+                                <article class="c-card c-content-block">
+                                    <h2 class="c-card__title">{{ item.title }}</h2>
+                                    <div class="c-reader__content">
+                                        {{ item.render }}
+                                    </div>
+                                </article>
+                            {% endwith %}
+                        {% empty %}
+                            <div class="c-card c-alert c-alert--info">
+                                <h2 class="c-card__title">No lesson content yet</h2>
+                                <p class="c-card__meta">This module does not contain any content yet.</p>
+                            </div>
+                        {% endfor %}
+                    {% endcache %}
+                {% else %}
+                    <div class="c-card c-alert c-alert--info">
+                        <h2 class="c-card__title">No modules found</h2>
+                        <p class="c-card__meta">This course has no modules yet.</p>
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+    </section>
+{% endblock %}

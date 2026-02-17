@@ -1,0 +1,217 @@
+.page {
+    display: grid;
+    gap: var(--space-5);
+}
+
+.page-heading {
+    display: grid;
+    gap: var(--space-2);
+}
+
+.page-title {
+    font-size: clamp(var(--fs-3), 2.2vw, var(--fs-5));
+    font-weight: 700;
+}
+
+.page-subtitle {
+    color: var(--color-text-muted);
+    font-size: var(--fs-0);
+}
+
+.catalog-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+}
+
+.course-listing {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.course-workspace {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+}
+
+.c-content-block {
+    gap: var(--space-3);
+}
+
+.c-filter-panel {
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-4));
+}
+
+.c-module-list {
+    display: grid;
+    gap: var(--space-2);
+}
+
+.c-module-item a,
+.c-module-item {
+    display: grid;
+    gap: var(--space-1);
+    color: var(--color-text);
+    border-radius: var(--radius-sm);
+}
+
+.c-module-item a {
+    padding: 0.65rem 0.75rem;
+    border: 1px solid transparent;
+    background: color-mix(in srgb, var(--color-surface) 85%, var(--color-bg));
+}
+
+.c-module-item a span {
+    color: var(--color-text-muted);
+    font-size: var(--fs-0);
+}
+
+.c-module-item.selected a,
+.c-module-item a:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-border));
+    background: color-mix(in srgb, var(--color-primary) 12%, white);
+}
+/* Dark theme: selected/hover subject links */
+body.theme-dark .c-module-item a {
+    background: color-mix(in srgb, var(--color-surface) 92%, #0d1522);
+    border-color: color-mix(in srgb, var(--color-border) 75%, #0d1522);
+    color: var(--color-text);
+}
+
+body.theme-dark .c-module-item.selected a,
+body.theme-dark .c-module-item a:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border));
+    background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+    color: #ecf4ff;
+}
+/* Compatibility for legacy templates still using .module/.contents/.course-info ids */
+.module,
+.contents {
+    min-width: 0;
+}
+
+.contents h3,
+.module h2,
+.module h3 {
+    font-size: var(--fs-2);
+}
+
+#modules {
+    display: grid;
+    gap: var(--space-2);
+}
+
+#module-contents {
+    display: grid;
+    gap: var(--space-3);
+}
+
+#module-contents > div {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3);
+    display: grid;
+    gap: var(--space-2);
+}
+
+.course-info {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    padding: var(--space-3);
+}
+
+.content-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.content-types li a {
+    display: inline-flex;
+    min-height: 38px;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    align-items: center;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.content-types li a:hover {
+    background: color-mix(in srgb, var(--color-secondary-surface) 80%, white);
+}
+
+/* Form and field consistency */
+form p {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-3);
+}
+
+label {
+    font-size: var(--fs-0);
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    min-height: 44px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    padding: 0.625rem 0.75rem;
+}
+
+textarea {
+    min-height: 120px;
+}
+
+input[type="submit"] {
+    width: auto;
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary);
+    color: #fff;
+    font-weight: 600;
+    padding-inline: var(--space-4);
+}
+
+input[type="submit"]:hover {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+}
+
+.errorlist {
+    color: var(--color-error);
+    font-size: var(--fs-0);
+}
+
+.helptext {
+    color: var(--color-text-muted);
+    font-size: var(--fs-0);
+}
+
+@media (max-width: 1200px) {
+    .catalog-layout,
+    .course-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .c-filter-panel {
+        position: static;
+    }
+}
+
+@media (max-width: 900px) {
+    .page-title {
+        font-size: clamp(var(--fs-2), 5vw, var(--fs-4));
+    }
+}
