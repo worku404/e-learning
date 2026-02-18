@@ -175,15 +175,19 @@ else:
     }
 
 from urllib.parse import urlparse
+from decouple import config
 
+# Get the Redis URL from the environment or use a default value
 redis_url = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+
+# Parse the Redis URL
 url = urlparse(redis_url)
 
-REDIS_HOST = url.hostname
-REDIS_PORT = url.port
-REDIS_DB = int(url.path[1:])  # Remove the leading '/' and convert to int
-REDIS_PASSWORD = url.password
-
+# Extract Redis connection details
+REDIS_HOST = url.hostname or '127.0.0.1'
+REDIS_PORT = url.port or 6379
+REDIS_DB = int(url.path[1:]) if url.path[1:].isdigit() else 0
+REDIS_PASSWORD = url.password or None
 # Development local IPs (used by debug-toolbar)
 INTERNAL_IPS = ["127.0.0.1"]
 
