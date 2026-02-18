@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     # Project apps
     "students.apps.StudentsConfig",
     'assistant.apps.AssistantConfig',
+    'chat.apps.ChatConfig',
+    
 
     # Third-party apps
     "embed_video",   # Embed and render video content in templates/models
@@ -93,6 +95,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "assistant.context_processors.llm_widget",
+                'students.context_processors.global_progress',
             ],
         },
     },
@@ -171,7 +174,15 @@ else:
         }
     }
 
+from urllib.parse import urlparse
 
+redis_url = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+url = urlparse(redis_url)
+
+REDIS_HOST = url.hostname
+REDIS_PORT = url.port
+REDIS_DB = int(url.path[1:])  # Remove the leading '/' and convert to int
+REDIS_PASSWORD = url.password
 
 # Development local IPs (used by debug-toolbar)
 INTERNAL_IPS = ["127.0.0.1"]
