@@ -7,6 +7,9 @@ Student-facing views:
 
 
 # URL builder used for redirects after successful actions.
+from django.conf import settings
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 
 # Auth helpers and login-protection mixin.
@@ -17,11 +20,25 @@ from django.contrib.auth.forms import UserCreationForm
 # Generic class-based views for create/form/list/detail pages.
 from django.views.generic.edit import CreateView, FormView
 from django.views.generic.list import ListView
-from django.views.generic.detail import DetailView
+from django.views.generic import TemplateView, DetailView, View
+
 
 # Local enrollment form and Course model.
 from .forms import CourseEnrollForm
-from courses.models import Course
+from courses.models import Course, Module
+from .services import add_time_spent, mark_module_completed
+from .services import get_overall_progress, get_course_time_spent
+
+
+import redis
+
+
+r = redis.Redis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=settings.REDIS_DB,
+)
+
 
 
 class StudentRegistrationView(CreateView):
@@ -85,27 +102,69 @@ class StudentCourseListView(LoginRequiredMixin, ListView):
         qs = super().get_queryset()
         return qs.filter(students__in=[self.request.user])
 
-
 class StudentCourseDetailView(LoginRequiredMixin, DetailView):
-    # Single course detail page.
     model = Course
     template_name = "students/course/detail.html"
 
     def get_queryset(self):
-        # Security filter: user can view only enrolled courses.
         qs = super().get_queryset()
         return qs.filter(students__in=[self.request.user])
-
     def get_context_data(self, **kwargs):
-        # Start with default DetailView context: object = current course.
         context = super().get_context_data(**kwargs)
         course = self.get_object()
         modules = course.modules.all()
+        user = self.request.user
 
-        # If URL has module_id, show that module; otherwise show first module.
         if "module_id" in self.kwargs:
-            context["module"] = course.modules.get(id=self.kwargs["module_id"])
+            module = get_object_or_404(Module, id=self.kwargs["module_id"], course=course)
         else:
-            context["module"] = modules.first()  # None if no modules
+            module = modules.first()
+
+        context["module"] = module
+
+        # --- FIX: mark module as completed when opened ---
+        if module:
+            mark_module_completed(user, module)
+
+        context['course_time'] = get_course_time_spent(user, course)
+
+        return context
+
+
+class MarkModuleCompleteView(View):
+    def post(self, request, module_id):
+        module = get_object_or_404(Module, id=module_id)
+
+        mark_module_completed(request.user, module)
+
+        return JsonResponse({'status': 'completed'})
+
+class TrackTimeView(View):
+    def post(self, request, module_id):
+        module = get_object_or_404(Module, id=module_id)
+        
+        try:
+            # Handle both standard POST and JSON/Beacon payloads
+            seconds = int(request.POST.get('seconds', 0))
+            
+            if seconds > 0:
+                add_time_spent(request.user, module, seconds)
+                return JsonResponse({'status': 'tracked', 'seconds': seconds})
+            
+            return JsonResponse({'status': 'ignored', 'reason': '0 seconds'})
+            
+        except ValueError:
+            return JsonResponse({'status': 'error', 'reason': 'Invalid seconds value'}, status=400)
+
+
+class StudentDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'students/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+
+        context['overall_progress'] = get_overall_progress(user)
+        context['courses'] = user.courses_joined.all()
 
         return context
