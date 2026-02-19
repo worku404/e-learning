@@ -729,3 +729,52 @@ body.theme-dark #assistant-close-btn  {
     from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ===================================================== */
+/* LIGHT MODE – 
+/* ===================================================== */
+
+/* Chat area background */
+body.light-mode #chat {
+    background: #f7f9fc;
+}
+
+/* Incoming message */
+body.light-mode #chat .message.other {
+    background: #eef2f7;
+    color: #1f2933;
+}
+
+/* Outgoing message (main accent green) */
+body.light-mode #chat .message.me {
+    background: linear-gradient(135deg, #2bb673, #239e60);
+    color: #ffffff;
+}
+
+/* Meta text */
+body.light-mode #chat .meta {
+    color: #4b5563;
+    opacity: 0.75;
+}
+
+/* Input dock */
+body.light-mode #chat-input {
+    background: #ffffff;
+    border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Text input */
+body.light-mode #chat-message-input {
+    background: #f1f5f9;
+    color: #111827;
+}
+
+body.light-mode #chat-message-input:focus {
+    background: #e8eef5;
+}
+
+/* Send button */
+body.light-mode #chat-message-submit {
+    background: #2bb673;
+    color: #ffffff;
+}
