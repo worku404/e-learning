@@ -1,7 +1,6 @@
 # URL pattern helper.
 from django.urls import path
-from .views import  TrackTimeView
-
+from .views import TrackTimeView, MarkModuleCompleteView
 # Student app views used by these routes.
 from . import views
 
@@ -52,4 +51,14 @@ urlpatterns = [
         views.ModuleImageView.as_view(),
         name="student_module_image",
     ),
+    path(
+        'module/<int:module_id>/complete/',
+        MarkModuleCompleteView.as_view(),
+        name='mark_module_compete',
+    ),
+    path(
+        'module/<int:module_id>/track-time/',
+        TrackTimeView.as_view(),
+        name='track_time',
+    )
 ]

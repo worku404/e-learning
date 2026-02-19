@@ -112,6 +112,7 @@ class StudentCourseDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(students__in=[self.request.user])
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         course = self.get_object()
@@ -124,27 +125,30 @@ class StudentCourseDetailView(LoginRequiredMixin, DetailView):
             module = modules.first()
 
         context["module"] = module
-
-        # --- FIX: mark module as completed when opened ---
-        if module:
-            mark_module_completed(user, module)
-
-        context['course_time'] = get_course_time_spent(user, course)
-
+        context["course_time"] = get_course_time_spent(self.request.user, course)
         return context
 
 
-class MarkModuleCompleteView(View):
+class MarkModuleCompleteView(View, LoginRequiredMixin):
     def post(self, request, module_id):
-        module = get_object_or_404(Module, id=module_id)
+        module = get_object_or_404(
+            Module, 
+            id=module_id,
+            course__students=request.user,
+            )
 
         mark_module_completed(request.user, module)
 
         return JsonResponse({'status': 'completed'})
 
-class TrackTimeView(View):
+class TrackTimeView(View, LoginRequiredMixin):
     def post(self, request, module_id):
-        module = get_object_or_404(Module, id=module_id)
+        module = get_object_or_404(
+            Module,
+            id=module_id,
+            course__students=request.user,
+            
+            )
         
         try:
             # Handle both standard POST and JSON/Beacon payloads

@@ -75,18 +75,61 @@
     </section>
 {% endblock %}
 
-
 {% block include_js %}
 <script>
-// --- Fix for Back Button Stale Data ---
-// Only reload if the page was restored from bfcache (Back/Forward cache)
-window.addEventListener( "pageshow", function ( event ) {
-  if ( event.persisted ) {
-    window.location.reload();
-  }
+window.addEventListener("pageshow", function (event) {
+    if (event.persisted) window.location.reload();
 });
 
 let startTime = Date.now();
+let completionSent = false;
+let userHasScrolled = false;
+
+const moduleContainer = document.querySelector(".module");
+const completeUrl = "{% if module %}{% url 'mark_module_complete' module.id %}{% endif %}";
+const timeUrl = "{% if module %}{% url 'track_time' module.id %}{% endif %}";
+
+function getCookie(name) {
+    const cookies = document.cookie ? document.cookie.split("; ") : [];
+    for (const c of cookies) {
+        const [key, ...rest] = c.split("=");
+        if (key === name) return decodeURIComponent(rest.join("="));
+    }
+    return "";
+}
+
+function isAtBottom() {
+    if (moduleContainer && moduleContainer.scrollHeight > moduleContainer.clientHeight + 2) {
+        return moduleContainer.scrollTop + moduleContainer.clientHeight >= moduleContainer.scrollHeight - 8;
+    }
+    return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 8;
+}
+
+function markCompleteIfNeeded() {
+    if (!completeUrl || completionSent || !userHasScrolled || !isAtBottom()) return;
+
+    completionSent = true;
+    fetch(completeUrl, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        credentials: "same-origin"
+    }).catch(() => {
+        completionSent = false; // retry on later scroll if request failed
+    });
+}
+
+function onScroll() {
+    userHasScrolled = true;
+    markCompleteIfNeeded();
+}
+
+window.addEventListener("scroll", onScroll, { passive: true });
+if (moduleContainer) {
+    moduleContainer.addEventListener("scroll", onScroll, { passive: true });
+}
 
 document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "hidden") {
@@ -97,20 +140,13 @@ document.addEventListener("visibilitychange", function () {
 });
 
 function sendTime() {
-    let seconds = Math.floor((Date.now() - startTime) / 1000);
-    
-    // Prevent sending 0 or negative seconds
-    if (seconds <= 0) return;
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    if (seconds <= 0 || !timeUrl) return;
 
-    // Create form data to include CSRF token
     const formData = new FormData();
-    formData.append('seconds', seconds);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-    navigator.sendBeacon(
-        "{% if module %}{% url 'track_time' module.id %}{% endif %}",
-        formData
-    );
+    formData.append("seconds", seconds);
+    formData.append("csrfmiddlewaretoken", getCookie("csrftoken"));
+    navigator.sendBeacon(timeUrl, formData);
 }
 
 window.addEventListener("beforeunload", sendTime);
