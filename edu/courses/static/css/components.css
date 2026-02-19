@@ -543,3 +543,189 @@ body.theme-dark #assistant-close-btn  {
     opacity: 1;
   }
 }
+/* ===================================================== */
+/* ROOT CHAT SHELL                                       */
+/* ===================================================== */
+
+#chat-room-shell {
+    height: calc(100dvh - 120px); /* adjust if your top navbar height differs */
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #0b1c2d 0%, #091423 100%);
+    overflow: hidden;
+}
+
+@supports not (height: 100dvh) {
+    #chat-room-shell {
+        height: calc(100vh - 120px);
+    }
+}
+
+/* ===================================================== */
+/* MESSAGE AREA                                          */
+/* ===================================================== */
+
+#chat {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    padding: 24px;
+    scroll-behavior: smooth;
+}
+
+/* Scrollbar (desktop only) */
+#chat::-webkit-scrollbar {
+    width: 6px;
+}
+#chat::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+}
+
+/* ===================================================== */
+/* MESSAGE BUBBLES                                       */
+/* ===================================================== */
+
+#chat .message {
+    max-width: 65%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.45;
+    word-break: break-word;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    animation: fadeIn .15s ease;
+}
+
+/* Incoming */
+#chat .message.other {
+    align-self: flex-start;
+    background: #1f2c3a;
+    color: #e6edf3;
+    border-bottom-left-radius: 6px;
+}
+
+/* Outgoing */
+#chat .message.me {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #2e7dd7, #2468b8);
+    color: white;
+    border-bottom-right-radius: 6px;
+}
+
+/* Meta row */
+#chat .meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    opacity: .6;
+}
+
+#chat .text {
+    margin-top: 2px;
+}
+
+/* ===================================================== */
+/* INPUT DOCK (Always Bottom)                            */
+/* ===================================================== */
+
+#chat-input {
+    flex-shrink: 0;
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Text input */
+#chat-message-input {
+    flex: 1;
+    border-radius: 999px;
+    border: none;
+    padding: 12px 18px;
+    background: #16283c;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    transition: background .2s ease;
+}
+
+#chat-message-input:focus {
+    background: #1b324a;
+}
+
+/* Send button */
+#chat-message-submit {
+    border: none;
+    border-radius: 999px;
+    padding: 12px 22px;
+    background: #2e7dd7;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform .1s ease, opacity .2s ease;
+}
+
+#chat-message-submit:hover {
+    opacity: .9;
+}
+
+#chat-message-submit:active {
+    transform: scale(.97);
+}
+
+/* ===================================================== */
+/* RESPONSIVE                                            */
+/* ===================================================== */
+
+@media (max-width: 1024px) {
+
+    #chat {
+        padding: 18px;
+    }
+
+    #chat .message {
+        max-width: 75%;
+    }
+}
+
+@media (max-width: 768px) {
+
+    #chat-room-shell {
+        height: calc(100dvh - 100px);
+    }
+
+    #chat {
+        padding: 14px;
+        gap: 10px;
+    }
+
+    #chat .message {
+        max-width: 85%;
+        font-size: 13px;
+    }
+
+    #chat-input {
+        padding: 12px;
+    }
+
+    #chat-message-submit {
+        padding: 10px 16px;
+    }
+}
+
+/* ===================================================== */
+/* ANIMATION                                             */
+/* ===================================================== */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
