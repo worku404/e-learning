@@ -5,11 +5,16 @@ import bleach
 
 register = template.Library()
 ALLOWED_TAGS = bleach.sanitizer.ALLOWED_TAGS.union({
-    "p", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "br", "hr"
+    "p", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "br", "hr",
+    "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption",
+    "colgroup", "col"
 })
 ALLOWED_ATTRIBUTES = {
     **bleach.sanitizer.ALLOWED_ATTRIBUTES,
     "a": ["href", "title", "target", "rel"],
+    "th": ["scope", "colspan", "rowspan"],
+    "td": ["colspan", "rowspan"],
+    "col": ["span"],
 }
 @register.filter(name="markdown")
 def markdown_filter(value):
