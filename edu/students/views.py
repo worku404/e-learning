@@ -8,6 +8,7 @@ Student-facing views:
 
 # URL builder used for redirects after successful actions.
 import os
+import mimetypes
 
 from django.conf import settings
 from django.http import FileResponse, Http404, JsonResponse
@@ -207,6 +208,8 @@ class DownloadModuleFileView(LoginRequiredMixin, View):
             raise Http404("File not found.") from exc
 
 
+
+
 class ModuleImageView(LoginRequiredMixin, View):
     """
     Serves module images only to enrolled users.
@@ -234,3 +237,37 @@ class ModuleImageView(LoginRequiredMixin, View):
             )
         except FileNotFoundError as exc:
             raise Http404("Image not found.") from exc
+
+
+# pdf previw page
+
+class ModuleFilePreviewView(LoginRequiredMixin, View):
+    """
+    Serve module file inline (for PDF browser preview) to enrolled users.
+    """
+    def get(self, request, file_id):
+        file_type = ContentType.objects.get_for_model(File)
+        content = get_object_or_404(
+            Content,
+            content_type=file_type,
+            object_id=file_id,
+            module__course__students=request.user,
+        )
+        file_obj = content.item
+
+        if not file_obj or not file_obj.file:
+            raise Http404("File not found.")
+
+        filename = os.path.basename(file_obj.file.name)
+        content_type, _ = mimetypes.guess_type(filename)
+        content_type = content_type or "application/octet-stream"
+
+        try:
+            return FileResponse(
+                file_obj.file.open("rb"),
+                as_attachment=False,  # inline view
+                filename=filename,
+                content_type=content_type,
+            )
+        except FileNotFoundError as exc:
+            raise Http404("File not found.") from exc

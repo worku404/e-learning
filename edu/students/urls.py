@@ -56,4 +56,10 @@ urlpatterns = [
         MarkModuleCompleteView.as_view(),
         name='mark_module_complete',
     ),
+    path(
+    "file/<int:file_id>/view/",
+    views.ModuleFilePreviewView.as_view(),
+    name="student_file_view",
+),
+
 ]
