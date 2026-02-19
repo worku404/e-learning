@@ -54,11 +54,6 @@ urlpatterns = [
     path(
         'module/<int:module_id>/complete/',
         MarkModuleCompleteView.as_view(),
-        name='mark_module_compete',
+        name='mark_module_complete',
     ),
-    path(
-        'module/<int:module_id>/track-time/',
-        TrackTimeView.as_view(),
-        name='track_time',
-    )
 ]

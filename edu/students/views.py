@@ -129,7 +129,7 @@ class StudentCourseDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class MarkModuleCompleteView(View, LoginRequiredMixin):
+class MarkModuleCompleteView(LoginRequiredMixin, View):
     def post(self, request, module_id):
         module = get_object_or_404(
             Module, 
@@ -141,7 +141,7 @@ class MarkModuleCompleteView(View, LoginRequiredMixin):
 
         return JsonResponse({'status': 'completed'})
 
-class TrackTimeView(View, LoginRequiredMixin):
+class TrackTimeView(LoginRequiredMixin, View):
     def post(self, request, module_id):
         module = get_object_or_404(
             Module,
