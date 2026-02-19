@@ -82,6 +82,9 @@ MIDDLEWARE = [
 ]
 
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://e-learning-aae0.onrender.com',
+]
 # URL and template configuration
 ROOT_URLCONF = "edu.urls"
 
