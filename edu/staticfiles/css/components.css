@@ -633,6 +633,53 @@ body.theme-dark #assistant-close-btn  {
 }
 
 /* ===================================================== */
+/* EMPTY CHAT STATE                                      */
+/* ===================================================== */
+
+#chat .chat-empty-state {
+    margin: auto;
+    width: min(640px, 100%);
+    border-radius: 24px;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    text-align: center;
+    border: 1px solid color-mix(in srgb, #ffffff 16%, transparent);
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, #2e7dd7 18%, #12253b) 0%,
+        color-mix(in srgb, #17304b 86%, #0b1725) 100%
+    );
+    color: #dce9f7;
+    box-shadow: 0 18px 48px rgba(5, 10, 18, 0.35);
+}
+
+#chat .chat-empty-state__emoji {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 0.9rem;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    font-size: 1.75rem;
+    background: color-mix(in srgb, #2e7dd7 52%, #102338);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 22%, transparent);
+}
+
+#chat .chat-empty-state__title {
+    margin: 0;
+    font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+#chat .chat-empty-state__text {
+    margin: 0.7rem auto 0;
+    max-width: 44ch;
+    font-size: 0.97rem;
+    line-height: 1.5;
+    color: color-mix(in srgb, #dce9f7 84%, #ffffff);
+}
+
+/* ===================================================== */
 /* INPUT DOCK (Always Bottom)                            */
 /* ===================================================== */
 
@@ -712,6 +759,11 @@ body.theme-dark #assistant-close-btn  {
         font-size: 13px;
     }
 
+    #chat .chat-empty-state {
+        width: 100%;
+        border-radius: 18px;
+    }
+
     #chat-input {
         padding: 12px;
     }
@@ -730,6 +782,7 @@ body.theme-dark #assistant-close-btn  {
     to   { opacity: 1; transform: translateY(0); }
 }
 
+
 /* Light mode chat background (append at the end of components.css) */
 body:not(.theme-dark) #chat-room-shell {
     background: linear-gradient(
@@ -738,6 +791,26 @@ body:not(.theme-dark) #chat-room-shell {
         color-mix(in srgb, #ffffff 72%, #ffe9f3) 100%
     );
     border: 1px solid color-mix(in srgb, var(--color-border) 76%, #ffd8b5);
+}
+
+body:not(.theme-dark) #chat .chat-empty-state {
+    border-color: color-mix(in srgb, var(--color-border) 72%, #ffd0de);
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, #ffffff 82%, #ffe7f2) 0%,
+        color-mix(in srgb, #fff5ea 86%, #ffe2c8) 100%
+    );
+    color: color-mix(in srgb, var(--color-text) 88%, #2b3a4e);
+    box-shadow: 0 14px 32px rgba(170, 117, 83, 0.16);
+}
+
+body:not(.theme-dark) #chat .chat-empty-state__emoji {
+    background: color-mix(in srgb, #2e7dd7 16%, #ffffff);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, #2e7dd7 32%, #ffffff);
+}
+
+body:not(.theme-dark) #chat .chat-empty-state__text {
+    color: color-mix(in srgb, var(--color-text) 75%, #53657c);
 }
 
 body:not(.theme-dark) #chat-input {

@@ -16,6 +16,14 @@
                     </div>
                    <div class="text">  {{message.content}}  </div> 
                 </div>
+            {% empty %}
+                <section id="chat-empty-state" class="chat-empty-state" role="status">
+                    <div class="chat-empty-state__emoji" aria-hidden="true">💬</div>
+                    <h2 class="chat-empty-state__title">Ask anything</h2>
+                    <p class="chat-empty-state__text">
+                        Your friends can answer your question, or you can start a discussion here.
+                    </p>
+                </section>
             {% endfor %}
         </div>
 
@@ -45,8 +53,17 @@
     const url = 'wss://' + window.location.host + '/ws/chat/room/' + courseId + '/';
     const chatSocket = new WebSocket(url);
     const chat = document.getElementById('chat');
+    const emptyState = document.getElementById('chat-empty-state');
+
+    const syncEmptyState = () => {
+        if (!emptyState) {
+            return;
+        }
+        emptyState.hidden = chat.querySelector('.message') !== null;
+    };
 
     // Scroll to bottom initially
+    syncEmptyState();
     chat.scrollTop = chat.scrollHeight;
 
     chatSocket.onmessage = function(event) {
@@ -65,6 +82,7 @@
                 '</div>' +
                 '<div class="text">' + data.message + '</div>' +
             '</div>';
+        syncEmptyState();
 
         // Only auto-scroll if user was already near bottom
         chat.scrollTop = chat.scrollHeight;
@@ -131,6 +149,7 @@
 
                     // Insert OLD messages at the TOP
                     chat.insertAdjacentHTML('afterbegin', html);
+                    syncEmptyState();
                     
                     // Restore scroll position so user sees the same message they were looking at
                     chat.scrollTop = chat.scrollHeight - previousHeight;
