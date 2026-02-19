@@ -7,10 +7,13 @@ Student-facing views:
 
 
 # URL builder used for redirects after successful actions.
+import os
+
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
+from django.contrib.contenttypes.models import ContentType
 
 # Auth helpers and login-protection mixin.
 from django.contrib.auth import authenticate, login
@@ -25,7 +28,7 @@ from django.views.generic import TemplateView, DetailView, View
 
 # Local enrollment form and Course model.
 from .forms import CourseEnrollForm
-from courses.models import Course, Module
+from courses.models import Content, Course, File, Image, Module
 from .services import add_time_spent, mark_module_completed
 from .services import get_overall_progress, get_course_time_spent
 
@@ -168,3 +171,62 @@ class StudentDashboardView(LoginRequiredMixin, TemplateView):
         context['courses'] = user.courses_joined.all()
 
         return context
+
+
+class DownloadModuleFileView(LoginRequiredMixin, View):
+    """
+    Serves a module file as an attachment for enrolled users.
+    This avoids relying on direct /media URLs in production.
+    """
+    def get(self, request, file_id):
+        file_type = ContentType.objects.get_for_model(File)
+        content = get_object_or_404(
+            Content,
+            content_type=file_type,
+            object_id=file_id,
+            module__course__students=request.user,
+        )
+        file_obj = content.item
+
+        if not file_obj or not file_obj.file:
+            raise Http404("File not found.")
+
+        filename = os.path.basename(file_obj.file.name)
+
+        try:
+            return FileResponse(
+                file_obj.file.open("rb"),
+                as_attachment=True,
+                filename=filename,
+            )
+        except FileNotFoundError as exc:
+            raise Http404("File not found.") from exc
+
+
+class ModuleImageView(LoginRequiredMixin, View):
+    """
+    Serves module images only to enrolled users.
+    This avoids relying on direct /media URLs in production.
+    """
+    def get(self, request, image_id):
+        image_type = ContentType.objects.get_for_model(Image)
+        content = get_object_or_404(
+            Content,
+            content_type=image_type,
+            object_id=image_id,
+            module__course__students=request.user,
+        )
+        image_obj = content.item
+
+        if not image_obj or not image_obj.file:
+            raise Http404("Image not found.")
+
+        filename = os.path.basename(image_obj.file.name)
+
+        try:
+            return FileResponse(
+                image_obj.file.open("rb"),
+                filename=filename,
+            )
+        except FileNotFoundError as exc:
+            raise Http404("Image not found.") from exc

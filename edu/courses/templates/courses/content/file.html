@@ -1,3 +1,5 @@
 <p class="c-resource-download">
-    <a href="{{ item.file.url }}" class="c-btn c-btn--secondary">Download file</a>
+    <a href="{% url 'student_file_download' item.id %}" class="c-btn c-btn--secondary">
+        Download file
+    </a>
 </p>

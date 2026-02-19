@@ -42,4 +42,14 @@ urlpatterns = [
     path('module/<int:module_id>/track-time/',
          TrackTimeView.as_view(),
          name='track_time'),
+    path(
+        "file/<int:file_id>/download/",
+        views.DownloadModuleFileView.as_view(),
+        name="student_file_download",
+    ),
+    path(
+        "image/<int:image_id>/",
+        views.ModuleImageView.as_view(),
+        name="student_module_image",
+    ),
 ]
