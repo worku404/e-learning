@@ -293,6 +293,11 @@ body.theme-dark .c-progress__bar {
     line-height: var(--lh-reading);
 }
 
+.page--workspace .c-reader__content {
+    max-width: 100%;
+    width: 100%;
+}
+
 .c-reader__content p + p,
 .c-reader__content ul + p,
 .c-reader__content p + ul {
@@ -319,6 +324,9 @@ body.theme-dark .c-progress__bar {
 }
 
 .c-media__img {
+    width: 100%;
+    height: auto;
+    display: block;
     border-radius: var(--radius-sm);
     border: 1px solid var(--color-border);
 }
@@ -945,12 +953,14 @@ body:not(.theme-dark) .course-time__value {
 }
 
 .c-pdf-viewer {
+  width: 100%;
   margin: 0 0 0.75rem 0;
 }
 
 .c-pdf-viewer__frame {
+  display: block;
   width: 100%;
-  min-height: 70vh;
+  min-height: 85vh;
   border: 1px solid var(--border-subtle, #2a4b6a);
   border-radius: 8px;
 }

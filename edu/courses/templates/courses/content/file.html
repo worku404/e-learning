@@ -8,13 +8,16 @@
             ></iframe>
         </div>
         <p class="c-resource-download">
-            <a href="{% url 'student_file_download' item.id %}" class="c-btn c-btn--secondary">
+            <a href="{% url 'student_file_download' item.id %}" class="c-btn c-btn--secondary" download>
                 Download PDF
+            </a>
+            <a href="{% url 'student_file_view' item.id %}" class="c-btn c-btn--secondary" target="_blank" rel="noopener">
+                Open PDF in new tab
             </a>
         </p>
     {% else %}
         <p class="c-resource-download">
-            <a href="{% url 'student_file_download' item.id %}" class="c-btn c-btn--secondary">
+            <a href="{% url 'student_file_download' item.id %}" class="c-btn c-btn--secondary" download>
                 Download file
             </a>
         </p>

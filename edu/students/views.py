@@ -15,6 +15,8 @@ from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib.contenttypes.models import ContentType
+from django.utils.decorators import method_decorator
+from django.views.decorators.clickjacking import xframe_options_exempt
 
 # Auth helpers and login-protection mixin.
 from django.contrib.auth import authenticate, login
@@ -241,6 +243,7 @@ class ModuleImageView(LoginRequiredMixin, View):
 
 # pdf previw page
 
+@method_decorator(xframe_options_exempt, name="dispatch")
 class ModuleFilePreviewView(LoginRequiredMixin, View):
     """
     Serve module file inline (for PDF browser preview) to enrolled users.
