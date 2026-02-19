@@ -906,3 +906,40 @@ body.theme-dark .course-chat-link__path {
   color: #8fc6f0;
   opacity: 1;
 }
+/* Keep it minimal: color + weight only */
+.page-subtitle--focus {
+  color: #8fb9df;
+  font-weight: 500;
+}
+
+.page-subtitle__value {
+  color: #d8ecff;
+  font-weight: 700;
+}
+
+.course-time {
+  color: #9ec2e6;
+  font-weight: 500;
+}
+
+.course-time__value {
+  color: #f2f8ff;
+  font-weight: 700;
+}
+
+/* Light mode adjustments */
+body:not(.theme-dark) .page-subtitle--focus {
+  color: #38607f;
+}
+
+body:not(.theme-dark) .page-subtitle__value {
+  color: #16374f;
+}
+
+body:not(.theme-dark) .course-time {
+  color: #335a78;
+}
+
+body:not(.theme-dark) .course-time__value {
+  color: #102e45;
+}

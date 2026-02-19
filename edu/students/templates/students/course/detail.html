@@ -9,9 +9,9 @@
     <section class="page page--workspace c-stack">
         <header class="page-heading">
             <h1 class="page-title">{{ object.title }}</h1>
-            <p class="page-subtitle">
+            <p class="page-subtitle page-subtitle--focus">
                 {% if module %}
-                    Current module: {{ module.title }}
+                    Current module: <span class="page-subtitle__value">{{ module.title }}</span>
                 {% else %}
                     Start with the first available module.
                 {% endif %}
@@ -22,7 +22,9 @@
             <aside class="contents c-card" aria-label="Module navigation">
                 <h2 class="c-card__title">Modules</h2>
                 <ul id="modules" class="c-module-list">
-                    <p>Time Spent: {{ course_time|duration_format }}</p>
+                    <p class="course-time">
+                        Time spent: <span class="course-time__value">{{ course_time|duration_format }}</span>
+                    </p>
 
                     {% for m in object.modules.all %}
                         <li data-id="{{ m.id }}" class="c-module-item {% if m == module %}selected{% endif %}">
