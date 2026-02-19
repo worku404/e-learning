@@ -9,7 +9,9 @@
             {% for message in latest_messages %}
                 <div class="message {% if message.user == request.user %} me {% else %} other {% endif %}">
                     <div class="meta"> 
-                        <strong>{{ message.user.username }}&nbsp;</strong>
+                        <strong>
+                            {% if message.user == request.user %}Me{% else %}{{ message.user.username }}{% endif %}&nbsp;
+                        </strong>
                         <span class="date">{{ message.sent_on|date:"Y.m.d H:i A" }}</span>
                     </div>
                    <div class="text">  {{message.content}}  </div> 
@@ -29,6 +31,8 @@
     {{ request.user.username|json_script:"request-user" }}
 {% endblock %}
 
+
+
 {% block domready %}
     const courseId = JSON.parse(
         document.getElementById('course-id').textContent
@@ -36,16 +40,19 @@
     const requestUser = JSON.parse(
         document.getElementById('request-user').textContent
     );
+    
+    // --- WebSocket Logic (Keep existing connection) ---
     const url = 'wss://' + window.location.host + '/ws/chat/room/' + courseId + '/';
-
     const chatSocket = new WebSocket(url);
+    const chat = document.getElementById('chat');
+
+    // Scroll to bottom initially
+    chat.scrollTop = chat.scrollHeight;
 
     chatSocket.onmessage = function(event) {
         const data = JSON.parse(event.data);
-        const chat = document.getElementById('chat');
         const dateOptions = {hour: 'numeric', minute: 'numeric', hour12: true};
         const datetime = new Date(data.datetime).toLocaleString('en', dateOptions);
-
         const isMe = data.user === requestUser;
         const source = isMe ? 'me' : 'other';
         const name = isMe ? 'Me' : data.user;
@@ -53,12 +60,13 @@
         chat.innerHTML +=
             '<div class="message ' + source + '">' +
                 '<div class="meta">' +
-                    '<strong>' + name + '</strong>' +
+                    '<strong>' + name + '</strong> ' +
                     '<span class="date">' + datetime + '</span>' +
                 '</div>' +
                 '<div class="text">' + data.message + '</div>' +
             '</div>';
 
+        // Only auto-scroll if user was already near bottom
         chat.scrollTop = chat.scrollHeight;
     };
 
@@ -85,5 +93,56 @@
         }
     });
 
-    input.focus();
+    // --- INFINITE SCROLL LOGIC ---
+    let page = 2; // We already loaded page 1 (first 100) via Django template
+    let blockRequest = false;
+    let emptyPage = false; 
+
+    chat.addEventListener('scroll', function() {
+        // Check if scrolled to top (scrollTop is 0)
+        if (this.scrollTop === 0 && !blockRequest && !emptyPage) {
+            blockRequest = true;
+            
+            // Save current scroll height to restore position later
+            const previousHeight = chat.scrollHeight;
+
+            // Fetch older messages
+            fetch(`/chat/history/${courseId}/?page=${page}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.messages.length === 0) {
+                    emptyPage = true;
+                } else {
+                    let html = '';
+                    data.messages.forEach(msg => {
+                        const source = msg.is_me ? 'me' : 'other';
+                        const name = msg.is_me ? 'Me' : msg.user;
+                        
+                        html += `
+                            <div class="message ${source}">
+                                <div class="meta">
+                                    <strong>${name}</strong>
+                                    <span class="date">${msg.sent_on}</span>
+                                </div>
+                                <div class="text">${msg.content}</div>
+                            </div>
+                        `;
+                    });
+
+                    // Insert OLD messages at the TOP
+                    chat.insertAdjacentHTML('afterbegin', html);
+                    
+                    // Restore scroll position so user sees the same message they were looking at
+                    chat.scrollTop = chat.scrollHeight - previousHeight;
+                    
+                    page += 1;
+                    blockRequest = false;
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching history:', err);
+                blockRequest = false;
+            });
+        }
+    });
 {% endblock %}
