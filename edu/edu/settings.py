@@ -33,6 +33,7 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*").split(",")
 
 # Application registration
 INSTALLED_APPS = [
+    'daphne',
     # Project apps (keep this app first as requested for auth monitoring/dependency order)
     "courses.apps.CoursesConfig",
 
@@ -175,7 +176,6 @@ else:
     }
 
 from urllib.parse import urlparse
-from decouple import config
 
 # Get the Redis URL from the environment or use a default value
 redis_url = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
@@ -213,4 +213,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ]
+}
+ASGI_APPLICATION = 'edu.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL],
+        },
+    },
 }
