@@ -1,6 +1,5 @@
-import markdown
-
 from .forms import LLMForm
+from .markdown_utils import render_llm_markdown
 
 
 def llm_widget(request):
@@ -25,7 +24,7 @@ def llm_widget(request):
         history_ui.append(
             {
                 "prompt": prompt,
-                "response": markdown.markdown(response) if response else "",
+                "response": render_llm_markdown(response) if response else "",
             }
         )
 

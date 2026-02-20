@@ -22,10 +22,16 @@ This guide is for end users and external clients consuming the deployed Gold-EDU
 
 1. Open `https://e-learning-aae0.onrender.com`
 2. Click `Sign in` (or register first from student registration flow or `https://e-learning-aae0.onrender.com/students/register/`)
-3. After login, go to `My Courses`
+
 
 ![Account and Login](./images/create_account.png)
+
+
+3. After login, go to `My Courses`
+
+
 ![Account and Login](./images/logged_in.png)
+
 
 ### Enroll in a Course
 
@@ -33,8 +39,11 @@ This guide is for end users and external clients consuming the deployed Gold-EDU
 2. Click `Enroll now`
 3. You are redirected to your learning workspace
 
+
 ![Enrollment Flow](./images/open_course_view.png)
+
 ![Enrollment Flow](./images/enroll_now.png)
+
 
 ### Learning Workspace
 
@@ -47,11 +56,13 @@ Inside `/students/course/<course_id>/`:
   - Embedded videos
   - Images
   - File resources (PDF preview + download)
-  
+
 ![Learning Workspace Placeholder](./images/content-preview.png)
 
 
 ![Learning Workspace Placeholder](./images/course_preview_1.png)
+
+
 
 ### PDF and File Usage
 
@@ -59,8 +70,9 @@ Inside `/students/course/<course_id>/`:
 - `Download PDF` triggers file download
 - `Open PDF in new tab` opens the same file endpoint in a separate tab
 
-![PDF Usage Placeholder](./images/placeholder-pdf-viewer.png)
-_Replace with: inline PDF preview and download/open actions._
+![PDF Usage Placeholder](./images/pdf-preview.png)
+
+
 
 ### Course Chat
 
@@ -68,8 +80,9 @@ _Replace with: inline PDF preview and download/open actions._
 - Real-time chat uses WebSocket and is scoped per course
 - Previous messages are persisted and loaded with history pagination
 
-![Course Chat Placeholder](./images/placeholder-course-chat.png)
-_Replace with: chat room UI with sample messages._
+![Course Chat Placeholder](./images/chat-preview.png)
+
+
 
 ### AI Assistant
 
@@ -78,7 +91,8 @@ _Replace with: chat room UI with sample messages._
 - Session keeps short conversation history for context
 
 ![AI Assistant Placeholder](./images/placeholder-ai-assistant.png)
-_Replace with: assistant panel open in the student workspace._
+
+AI Assistance may not work in Firefox.
 
 ## 2) Instructor Usage (Web App)
 
@@ -91,8 +105,9 @@ Instructor entry points are under `/course/`.
 - `GET /course/<pk>/edit/` -> edit course
 - `GET /course/<pk>/delete/` -> delete course
 
-![Instructor Course Management Placeholder](./images/placeholder-instructor-manage-courses.png)
-_Replace with: instructor "My Courses" page and course action links._
+
+![Instructor Course Management Placeholder](./images/course-create.png)
+
 
 ### Manage Modules
 
@@ -100,7 +115,7 @@ _Replace with: instructor "My Courses" page and course action links._
 - Add, remove, and reorder modules
 
 ![Instructor Module Management Placeholder](./images/placeholder-instructor-modules.png)
-_Replace with: module formset page for a course._
+
 
 ### Manage Content
 
@@ -112,7 +127,7 @@ _Replace with: module formset page for a course._
   - `file`
 
 ![Instructor Content Management Placeholder](./images/placeholder-instructor-content.png)
-_Replace with: module content manager showing text/video/image/file actions._
+
 
 ### Ordering
 
@@ -121,7 +136,9 @@ _Replace with: module content manager showing text/video/image/file actions._
   - Content order within a module
 
 ![Drag and Drop Ordering Placeholder](./images/placeholder-ordering.png)
-_Replace with: drag-and-drop ordering state in instructor content/module management._
+
+![Drag and Drop Ordering Placeholder](./images/placeholder-ordering2.png)
+
 
 ## 3) API Client Usage (Production)
 
@@ -144,7 +161,7 @@ Use this when building mobile apps, SPAs, scripts, or integrations.
 - `GET /api/courses/{id}/contents/` -> requires enrolled user
 
 ![API Token Dashboard Placeholder](./images/placeholder-api-token-ui.png)
-_Replace with: token dashboard page including token copy/rotate actions._
+
 
 ### Example: Get Token (Production)
 
@@ -190,7 +207,7 @@ curl https://e-learning-aae0.onrender.com/api/courses/1/contents/ \
 - On platforms with ephemeral disk, old uploads can disappear after restart/redeploy
 
 ![Troubleshooting Placeholder](./images/placeholder-troubleshooting.png)
-_Replace with: browser/network error example (401/403/404 or PDF issue) and resolved state._
+
 
 ## 5) Recommended Client Onboarding Flow
 
@@ -204,6 +221,3 @@ For fastest adoption in production:
 6. Test API token generation from `/api/developer/token-ui/`
 
 This confirms both UI and API consumption paths are working end-to-end.
-
-![Onboarding Flow Placeholder](./images/placeholder-onboarding-flow.png)
-_Replace with: a quick sequence collage or one screenshot that summarizes the end-to-end onboarding journey._

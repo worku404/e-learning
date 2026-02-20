@@ -4,7 +4,8 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.conf import settings
 import requests
-import markdown
+
+from .markdown_utils import render_llm_markdown
 
 @require_POST
 @login_required
@@ -73,7 +74,7 @@ def llm_generate(request):
                 history.append({"prompt": prompt, "response": generated})
                 request.session["llm_history"] = history
                 request.session.modified = True
-                return JsonResponse({"generated": markdown.markdown(generated)})
+                return JsonResponse({"generated": render_llm_markdown(generated)})
             error_payload = {}
             try:
                 error_payload = response.json()
