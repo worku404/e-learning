@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load course %}
-{% load cache %}
 
 {% block title %}
     {{ object.title }}
@@ -59,24 +58,21 @@
 
             <section class="module c-stack c-reader" aria-label="Module content">
                 {% if module %}
-                    {% cache 600 module_contents module request.user.id %}
-                        {% for content in module.contents.all %}
-                            {% with item=content.item %}
-                                <article class="c-card c-content-block">
-                                    <h2 class="c-card__title">{{ item.title }}</h2>
-                                    <div class="c-reader__content">
-                                        {{ item.render }}
-                                    </div>
-                                    
-                                </article>
-                            {% endwith %}
-                        {% empty %}
-                            <div class="c-card c-alert c-alert--info">
-                                <h2 class="c-card__title">No lesson content yet</h2>
-                                <p class="c-card__meta">This module does not contain any content yet.</p>
-                            </div>
-                        {% endfor %}
-                    {% endcache %}
+                    {% for content in module.contents.all %}
+                        {% with item=content.item %}
+                            <article class="c-card c-content-block">
+                                <h2 class="c-card__title">{{ item.title }}</h2>
+                                <div class="c-reader__content">
+                                    {{ item.render }}
+                                </div>
+                            </article>
+                        {% endwith %}
+                    {% empty %}
+                        <div class="c-card c-alert c-alert--info">
+                            <h2 class="c-card__title">No lesson content yet</h2>
+                            <p class="c-card__meta">This module does not contain any content yet.</p>
+                        </div>
+                    {% endfor %}
                 {% else %}
                     <div class="c-card c-alert c-alert--info">
                         <h2 class="c-card__title">No modules found</h2>

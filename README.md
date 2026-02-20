@@ -4,7 +4,7 @@ A production-focused Learning Management System built with Django, Django REST F
 
 Gold-EDU supports public course discovery, structured module learning, instructor content management, token-secured APIs, real-time course chat, and in-page AI assistance.
 
-[Live Demo](https://e-learning-aae0.onrender.com) | [API Documentation](./docs/api.md)
+[Live Demo](https://e-learning-aae0.onrender.com) | [Client Usage Guide](./docs/usage.md) | [API Documentation](./docs/api.md)
 
 ## Preview
 
