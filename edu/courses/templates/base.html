@@ -49,6 +49,10 @@
                 {% if request.user.is_authenticated %}
                     <a href="{% url 'student_course_list' %}" class="c-btn c-btn--ghost">My Courses</a>
                 {% endif %}
+                {% if not request.user.is_authenticated %}
+                    <a href="https://github.com/worku404/e-learning/blob/main/docs/usage.md" target="_blank" class="c-btn c-btn--ghost">Usage Guide</a>
+                    <span class="course-chat-link__arrow" aria-hidden="true">↗</span>
+                {% endif %}
                     <a href="{% url 'api:token_ui' %}" class="c-btn c-btn--ghost">API</a>
                     <a href="#"
                         id="theme-toggle-link"
