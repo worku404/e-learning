@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "redisboard",    # Redis monitoring dashboard
     'rest_framework', # To build an API
     'rest_framework.authtoken', # DRF token authentication model
+    'storages',
 
 ]
 
@@ -146,7 +147,37 @@ STATIC_URL = "static/"
 MEDIA_URL = "media/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_ROOT = Path(config("MEDIA_ROOT", default=str(BASE_DIR / "media")))
-STATIC_FILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# STATIC_FILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+USE_B2 = config("USE_B2", default=False, cast=bool)
+
+if USE_B2:
+    AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME")
+    AWS_S3_ENDPOINT_URL = config("AWS_S3_ENDPOINT_URL")
+
+    AWS_S3_SIGNATURE_VERSION = "s3v4"
+    AWS_S3_ADDRESSING_STYLE = "path"
+    AWS_DEFAULT_ACL = None
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_QUERYSTRING_AUTH = True  # private bucket
+    AWS_QUERYSTRING_EXPIRE = 3600
+
+    STORAGES = {
+        "default": {"BACKEND": "storages.backends.s3.S3Storage"},
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        },
+    }
+else:
+    STORAGES = {
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        },
+    }
+
 
 # Security headers
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
