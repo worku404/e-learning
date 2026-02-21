@@ -50,7 +50,7 @@
                     <a href="{% url 'student_course_list' %}" class="c-btn c-btn--ghost">My Courses</a>
                 {% endif %}
                 {% if not request.user.is_authenticated %}
-                    <a href="https://github.com/worku404/worku-lms/blob/main/docs/usage.md" target="_blank" class="c-btn c-btn--ghost">Usage Guide
+                    <a href="https://github.com/worku404/e-learning/blob/main/docs/usage.md" target="_blank" class="c-btn c-btn--ghost">Usage Guide
                     <span class="course-chat-link__arrow" aria-hidden="true">↗</span>
                     </a>
                 {% endif %}
@@ -125,25 +125,25 @@
     id="assistant-unhide"
     class="assistant-unhide"
     type="button"
-    aria-label="Show W-AI assistant"
+    aria-label="Show AI assistant"
     aria-controls="assistant-panel"
     aria-expanded="true"
 >
-    <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="24" 
-        height="24" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        stroke-width="2.5" 
-        stroke-linecap="round" 
+    <svg class="assistant-unhide__icon"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
         stroke-linejoin="round"
         aria-hidden="true"
     >
-        <path d="M4 11 L8 21 L12 14 L16 21 L20 11" />
-        <path d="M19 2 L20 5 L23 6 L20 7 L19 10 L18 7 L15 6 L18 5 Z" fill="currentColor" stroke="none" />
-        <path d="M7 3 L7.5 4.5 L9 5 L7.5 5.5 L7 7 L6.5 5.5 L5 5 L6.5 4.5 Z" fill="currentColor" stroke="none" />
+        <rect x="4" y="7" width="16" height="11" rx="4"></rect>
+        <circle cx="9.5" cy="12.5" r="1"></circle>
+        <circle cx="14.5" cy="12.5" r="1"></circle>
+        <path d="M10 15.5h4"></path>
+        <path d="M12 4v3"></path>
     </svg>
 </button>
                 <section id="assistant-panel" class="assistance c-ai-panel">

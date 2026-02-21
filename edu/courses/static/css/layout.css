@@ -136,7 +136,9 @@
 
 .l-util {
     position: sticky;
-    top: calc(var(--topbar-height) + var(--space-4));
+    top: var(--topbar-height);
+
+
 }
 
 .app-body.has-assistant.assistant-hidden .l-util {
@@ -185,12 +187,12 @@
         position: static;
     }
 
-    .app-body.has-assistant:not(.assistant-hidden) .l-util .assistance {
+    .app-body.has-assistant.assistant-sidebar-open .l-util .assistance {
         position: fixed;
-        top: var(--topbar-height);
+        top: var(--assistant-top-offset, var(--topbar-height));
         right: 0;
         width: min(95vw, 420px);
-        max-height: calc(100vh - var(--topbar-height));
+        max-height: calc(100vh - var(--assistant-top-offset, var(--topbar-height)));
         z-index: 1200;
         border-left: 1px solid var(--color-border);
         box-shadow: -8px 0 24px rgba(var(--color-shadow), 0.12);

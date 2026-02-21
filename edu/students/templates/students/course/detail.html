@@ -18,8 +18,39 @@
         </header>
 
         <div class="course-workspace">
-            <aside class="contents c-card" aria-label="Module navigation">
-                <h2 class="c-card__title">Modules</h2>
+            <button
+                id="modules-unhide"
+                class="modules-unhide"
+                type="button"
+                aria-label="Show modules sidebar"
+                aria-controls="module-sidebar"
+                aria-expanded="true"
+            >
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                    <line x1="4" y1="7" x2="20" y2="7"></line>
+                    <line x1="4" y1="12" x2="20" y2="12"></line>
+                    <line x1="4" y1="17" x2="20" y2="17"></line>
+                </svg>
+            </button>
+
+            <aside id="module-sidebar" class="contents c-card" aria-label="Module navigation">
+                <div class="modules-toolbar">
+                    <h2 class="c-card__title">Modules</h2>
+                    <button
+                        id="modules-collapse-btn"
+                        class="modules-collapse-btn"
+                        type="button"
+                        aria-label="Collapse modules sidebar"
+                        aria-controls="module-sidebar"
+                        aria-expanded="true"
+                    >
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                            <line x1="4" y1="7" x2="20" y2="7"></line>
+                            <line x1="4" y1="12" x2="20" y2="12"></line>
+                            <line x1="4" y1="17" x2="20" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
                 <ul id="modules" class="c-module-list">
                     <p class="course-time">
                         Time spent: <span class="course-time__value">{{ course_time|duration_format }}</span>
@@ -93,10 +124,88 @@ window.addEventListener("pageshow", function (event) {
 let startTime = Date.now();
 let completionSent = false;
 let userHasScrolled = false;
+const modulesUiStateKey = "modules_sidebar_state";
 
 const moduleContainer = document.querySelector(".module");
 const completeUrl = "{% if module %}{% url 'mark_module_complete' module.id %}{% endif %}";
 const timeUrl = "{% if module %}{% url 'track_time' module.id %}{% endif %}";
+const workspaceEl = document.querySelector(".course-workspace");
+const moduleSidebarEl = document.getElementById("module-sidebar");
+const moduleCollapseBtn = document.getElementById("modules-collapse-btn");
+const moduleUnhideBtn = document.getElementById("modules-unhide");
+const moduleContentEl = document.querySelector(".course-workspace .module");
+const weeklyFocusCardEl = document.querySelector(".l-rail--left .c-progress-card");
+
+function updateModulesLauncherPosition() {
+    if (!moduleUnhideBtn || !moduleContentEl) return;
+    const moduleRect = moduleContentEl.getBoundingClientRect();
+    const buttonWidth = moduleUnhideBtn.offsetWidth || 40;
+    const buttonHeight = moduleUnhideBtn.offsetHeight || 40;
+    const gap = 8;
+    const left = Math.max(8, Math.round(moduleRect.left - buttonWidth - gap));
+    const header = document.getElementById("header");
+    const minTop = (header ? header.offsetHeight : 0) + 8;
+    const rawTop = weeklyFocusCardEl
+        ? Math.round(weeklyFocusCardEl.getBoundingClientRect().bottom + 10)
+        : Math.round(moduleRect.top + 12);
+    const maxTop = window.innerHeight - buttonHeight - 8;
+    const top = Math.max(minTop, Math.min(rawTop, maxTop));
+    document.documentElement.style.setProperty("--modules-unhide-left", `${left}px`);
+    document.documentElement.style.setProperty("--modules-unhide-top", `${top}px`);
+}
+
+function persistModulesState(state) {
+    try {
+        localStorage.setItem(modulesUiStateKey, state);
+    } catch (error) {
+        // Ignore localStorage errors.
+    }
+}
+
+function syncModulesToggle(expanded) {
+    if (moduleCollapseBtn) {
+        moduleCollapseBtn.setAttribute("aria-expanded", String(expanded));
+    }
+    if (moduleUnhideBtn) {
+        moduleUnhideBtn.setAttribute("aria-expanded", String(expanded));
+    }
+}
+
+function setModulesCollapsed(collapsed) {
+    if (!workspaceEl || !moduleSidebarEl) return;
+    workspaceEl.classList.toggle("modules-collapsed", collapsed);
+    document.body.classList.toggle("modules-sidebar-collapsed", collapsed);
+    moduleSidebarEl.setAttribute("aria-hidden", String(collapsed));
+    syncModulesToggle(!collapsed);
+    updateModulesLauncherPosition();
+}
+
+if (workspaceEl && moduleSidebarEl) {
+    let storedState = "expanded";
+    try {
+        storedState = localStorage.getItem(modulesUiStateKey) || "expanded";
+    } catch (error) {
+        storedState = "expanded";
+    }
+    setModulesCollapsed(storedState === "collapsed");
+    updateModulesLauncherPosition();
+    window.addEventListener("resize", updateModulesLauncherPosition);
+    window.addEventListener("scroll", updateModulesLauncherPosition, { passive: true });
+}
+
+if (moduleCollapseBtn) {
+    moduleCollapseBtn.addEventListener("click", function () {
+        setModulesCollapsed(true);
+        persistModulesState("collapsed");
+    });
+}
+
+if (moduleUnhideBtn) {
+    moduleUnhideBtn.addEventListener("click", function () {
+        setModulesCollapsed(false);
+        persistModulesState("expanded");
+    });
+}
 
 function getCookie(name) {
     const cookies = document.cookie ? document.cookie.split("; ") : [];
