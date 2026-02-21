@@ -609,8 +609,7 @@ body.assistant-sidebar-open .llm-form {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    background: #282A36;
-    background-color: red !important;
+    background: #172434;
     border: 1px solid color-mix(in srgb, #4a4f65 68%, transparent);
     border-radius: 18px;
     padding: 0.5rem;

@@ -3,6 +3,27 @@
     gap: var(--space-5);
 }
 
+html,
+body {
+    scrollbar-color: #54586D #282A36;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 9px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+    background: #282A36;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+    background: #54586D;
+    border-radius: 999px;
+}
+
 .page-heading {
     display: grid;
     gap: var(--space-2);
@@ -44,7 +65,7 @@
     max-height: calc(100vh - var(--topbar-height) - var(--space-5));
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: #8c8f96 #0F1723;
+    scrollbar-color: #54586D #0F1723;
 }
 
 .course-workspace .contents::-webkit-scrollbar {
@@ -56,7 +77,7 @@
 }
 
 .course-workspace .contents::-webkit-scrollbar-thumb {
-    background: #8c8f96;
+    background: #54586D;
     border-radius: 999px;
 }
 
