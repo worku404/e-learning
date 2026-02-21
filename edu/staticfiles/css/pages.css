@@ -43,6 +43,21 @@
     top: calc(var(--topbar-height) + var(--space-4));
     max-height: calc(100vh - var(--topbar-height) - var(--space-5));
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #8c8f96 #0F1723;
+}
+
+.course-workspace .contents::-webkit-scrollbar {
+    width: 6px;
+}
+
+.course-workspace .contents::-webkit-scrollbar-track {
+    background: #0F1723;
+}
+
+.course-workspace .contents::-webkit-scrollbar-thumb {
+    background: #8c8f96;
+    border-radius: 999px;
 }
 
 .modules-toolbar {
