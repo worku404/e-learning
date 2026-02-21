@@ -17,6 +17,7 @@ from django.urls import reverse_lazy
 from django.contrib.contenttypes.models import ContentType
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.utils.cache import patch_response_headers
 
 # Auth helpers and login-protection mixin.
 from django.contrib.auth import authenticate, login
@@ -266,11 +267,14 @@ class ModuleFilePreviewView(LoginRequiredMixin, View):
         content_type = content_type or "application/octet-stream"
 
         try:
-            return FileResponse(
+            response = FileResponse(
                 file_obj.file.open("rb"),
-                as_attachment=False,  # inline view
+                as_attachment=False,
                 filename=filename,
                 content_type=content_type,
             )
+            patch_response_headers(response, cache_timeout=3600)
+            response['Cache-Control'] = "private, max-age=3600"
+            return response
         except FileNotFoundError as exc:
             raise Http404("File not found.") from exc
