@@ -23,6 +23,7 @@ from django.utils.cache import patch_response_headers
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import redirect
 
 # Generic class-based views for create/form/list/detail pages.
 from django.views.generic.edit import CreateView, FormView
@@ -241,7 +242,6 @@ class ModuleImageView(LoginRequiredMixin, View):
         except FileNotFoundError as exc:
             raise Http404("Image not found.") from exc
 
-
 # pdf previw page
 
 @method_decorator(xframe_options_exempt, name="dispatch")
@@ -262,19 +262,5 @@ class ModuleFilePreviewView(LoginRequiredMixin, View):
         if not file_obj or not file_obj.file:
             raise Http404("File not found.")
 
-        filename = os.path.basename(file_obj.file.name)
-        content_type, _ = mimetypes.guess_type(filename)
-        content_type = content_type or "application/octet-stream"
-
-        try:
-            response = FileResponse(
-                file_obj.file.open("rb"),
-                as_attachment=False,
-                filename=filename,
-                content_type=content_type,
-            )
-            patch_response_headers(response, cache_timeout=3600)
-            response['Cache-Control'] = "private, max-age=3600"
-            return response
-        except FileNotFoundError as exc:
-            raise Http404("File not found.") from exc
+        # Redirect to the storage URL (signed for private B2).
+        return redirect(file_obj.file.url)

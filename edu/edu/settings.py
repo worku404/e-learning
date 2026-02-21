@@ -164,6 +164,9 @@ if USE_B2:
     AWS_S3_FILE_OVERWRITE = False
     AWS_QUERYSTRING_AUTH = True  # private bucket
     AWS_QUERYSTRING_EXPIRE = 3600
+    AWS_S3_OBJECT_PARAMETERS = {
+    "CacheControl": "private, max-age=3600",
+}
 
     STORAGES = {
         "default": {"BACKEND": "storages.backends.s3.S3Storage"},
