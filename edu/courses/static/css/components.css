@@ -480,6 +480,23 @@ body.assistant-sidebar-open .llm-form {
 .llm-chat-row--ai {
     justify-content: flex-start;
 }
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-keyword,
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-selector-tag,
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-literal {
+    color: #ff7a90;
+    font-weight: 600;
+}
+
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-string,
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-attr {
+    color: #9be36a;
+}
+
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-number,
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-symbol {
+    color: #ffbf69;
+}
+
 
 /* special chars */
 
