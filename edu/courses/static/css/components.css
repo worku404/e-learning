@@ -21,6 +21,7 @@
 .theme-icon svg {
     display: block;
 }
+
 .c-btn--primary {
     background: var(--color-primary);
     color: #fff;
