@@ -173,9 +173,9 @@ function renderHistory() {
   container.scrollTop = Math.min(
     previousScrollTop,
     Math.max(0, container.scrollHeight - container.clientHeight)
-  );
   highlightGeneratedCode(container);
-}
+
+  );
  // llm code highlight
   const highlightGeneratedCode = (container) => {
   if (!container || !window.hljs) return;

@@ -498,6 +498,24 @@ body.assistant-sidebar-open .llm-form {
 }
 
 
+/* special chars */
+
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-keyword,
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-selector-tag,
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-literal {
+    color: #ff7a90;
+    font-weight: 600;
+}
+
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-string,
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-attr {
+    color: #9be36a;
+}
+
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-number,
+.llm-chat-row--ai .llm-chat-msg pre code.hljs .hljs-symbol {
+    color: #ffbf69;
+}
 .llm-chat-bubble {
     max-width: 100%;
     min-width: 0;
@@ -1178,4 +1196,91 @@ body:not(.theme-dark) .course-time__value {
   min-height: 85vh;
   border: 1px solid var(--border-subtle, #2a4b6a);
   border-radius: 8px;
+}
+/* top 3 *
+/
+.c-focus-modules {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.25rem;
+}
+
+.c-focus-modules__toggle {
+    justify-self: start;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-surface) 88%, var(--color-secondary-surface));
+    color: var(--color-text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.25rem 0.7rem;
+    cursor: pointer;
+}
+
+.c-focus-modules__toggle:hover {
+    background: color-mix(in srgb, var(--color-secondary-surface) 75%, var(--color-surface));
+}
+
+.c-focus-modules__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.42rem;
+}
+
+/* Fix: allow hidden attribute to actually hide the list */
+.c-focus-modules__list[hidden] {
+    display: none;
+}
+
+.c-focus-modules__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    min-width: 0;
+}
+
+.c-focus-modules__name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.c-focus-modules__time {
+    color: var(--color-text);
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+body.theme-dark .c-focus-modules__toggle {
+    border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border));
+    background: color-mix(in srgb, var(--color-surface) 86%, #0b1320);
+    color: #e8f2ff;
+}
+
+body.theme-dark .c-focus-modules__toggle:hover {
+    background: color-mix(in srgb, var(--color-accent) 22%, var(--color-surface));
+}
+
+body.theme-dark .c-focus-modules__list {
+    border-top: 1px solid color-mix(in srgb, var(--color-border) 76%, #0b1320);
+    padding-top: 0.35rem;
+}
+
+body.theme-dark .c-focus-modules__item {
+    color: #b9cadd;
+}
+
+body.theme-dark .c-focus-modules__name {
+    color: #dbe8f6;
+}
+
+body.theme-dark .c-focus-modules__time {
+    color: #f3f8ff;
 }
