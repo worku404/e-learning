@@ -1,4 +1,4 @@
-{% load static %}
+{% load static course %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,8 +8,7 @@
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+
 </head>
 <body class="app-body{% if request.user.is_authenticated %} has-assistant assistant-hidden{% endif %}">
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -108,23 +107,24 @@
                 <p class="c-progress__text">
                     {{ overall_progress|default:0 }}% complete
                 </p>
-                {% if top_courses %}
+                {# Top 3 #}
+                {% if top_modules %}
+
                 <div class="c-focus-modules" data-focus-modules>
                     <button
                         type="button"
                         class="c-focus-modules__toggle"
                         aria-expanded="false"
-                        aria-controls="focus-modules-list"
                         data-focus-toggle
                     >
                         More
                     </button>
 
-                    <ul id="focus-modules-list" class="c-focus-modules__list" data-focus-list hidden>
-                        {% for course in top_courses %}
+                    <ul class="c-focus-modules__list" data-focus-list hidden>
+                        {% for progress in top_modules %}
                         <li class="c-focus-modules__item">
-                            <span class="c-focus-modules__name">{{ course.course__title }}</span>
-                            <span class="c-focus-modules__time" style="color: #2A9D66;">{{ course.total_time|duration_format }}</span>
+                            <span class="c-focus-modules__name">{{ progress.module_title }}</span>
+                            <span class="c-focus-modules__time">{{ progress.time_spent|duration_format }}</span>
                         </li>
                         {% endfor %}
                     </ul>
@@ -145,31 +145,33 @@
 
         <aside class="l-util" aria-label="Tools and assistant">
             {% if request.user.is_authenticated %}
-<button
-    id="assistant-unhide"
-    class="assistant-unhide"
-    type="button"
-    aria-label="Show AI assistant"
-    aria-controls="assistant-panel"
-    aria-expanded="true"
->
-    <svg class="assistant-unhide__icon"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-    >
-        <rect x="4" y="7" width="16" height="11" rx="4"></rect>
-        <circle cx="9.5" cy="12.5" r="1"></circle>
-        <circle cx="14.5" cy="12.5" r="1"></circle>
-        <path d="M10 15.5h4"></path>
-        <path d="M12 4v3"></path>
-    </svg>
-</button>
+
+        <button
+            id="assistant-unhide"
+            class="assistant-unhide"
+            type="button"
+            aria-label="Show AI assistant"
+            aria-controls="assistant-panel"
+            aria-expanded="true"
+        >
+            <svg class="assistant-unhide__icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+            >
+                <rect x="4" y="7" width="16" height="11" rx="4"></rect>
+                <circle cx="9.5" cy="12.5" r="1"></circle>
+                <circle cx="14.5" cy="12.5" r="1"></circle>
+                <path d="M10 15.5h4"></path>
+                <path d="M12 4v3"></path>
+            </svg>
+        </button>
+
                 <section id="assistant-panel" class="assistance c-ai-panel">
                     {% block ai %}
                         {% include "assistant/llm.html" %}
@@ -187,21 +189,20 @@
     {% block include_js %}{% endblock %}
     <script>
         (function () {
-        const themeStorageKey = "theme_preference";
-        const defaultMode = "dark";
-        const body = document.body;
-        const toggleLink = document.getElementById("theme-toggle-link");
+            const themeStorageKey = "theme_preference";
+            const body = document.body;
+            const toggleLink = document.getElementById("theme-toggle-link");
 
-        if (!body || !toggleLink) return;
+            if (!body || !toggleLink) return;
 
-        const applyTheme = (mode) => {
-            const darkModeEnabled = mode === "dark";
-            body.classList.toggle("theme-dark", darkModeEnabled);
-            const icon = toggleLink.querySelector(".theme-icon");
+            const applyTheme = (mode) => {
+                const darkModeEnabled = mode === "dark";
+                body.classList.toggle("theme-dark", darkModeEnabled);
+                const icon = toggleLink.querySelector(".theme-icon");
 
-            if (icon) {
-                icon.innerHTML = darkModeEnabled
-                    ? `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                if (icon) {
+                    icon.innerHTML = darkModeEnabled
+                        ? `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                             <circle cx="12" cy="12" r="5"/>
                             <g stroke="currentColor" stroke-width="2">
                                 <line x1="12" y1="1" x2="12" y2="4"/>
@@ -214,55 +215,57 @@
                                 <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
                             </g>
                         </svg>`
-                    : `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        : `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                             <path d="M21 12.79A9 9 0 0 1 11.21 3
                                     7 7 0 1 0 21 12.79z"/>
                         </svg>`;
-            }
+                }
+                toggleLink.setAttribute("aria-pressed", String(darkModeEnabled));
+            };
 
-            toggleLink.setAttribute("aria-pressed", String(darkModeEnabled));
-        };
-
-        let preferredMode = defaultMode;
-        try {
-            const storedMode = localStorage.getItem(themeStorageKey);
-            if (storedMode === "dark" || storedMode === "light") {
-                preferredMode = storedMode;
-            } else {
-                localStorage.setItem(themeStorageKey, defaultMode);
-            }
-        } catch (error) {
-            preferredMode = defaultMode;
-        }
-
-        applyTheme(preferredMode);
-
-        toggleLink.addEventListener("click", function (event) {
-            event.preventDefault();
-            const nextMode = body.classList.contains("theme-dark") ? "light" : "dark";
-            applyTheme(nextMode);
+            let preferredMode = "light";
             try {
-                localStorage.setItem(themeStorageKey, nextMode);
+                const storedMode = localStorage.getItem(themeStorageKey);
+                if (storedMode === "dark" || storedMode === "light") {
+                    preferredMode = storedMode;
+                }
             } catch (error) {
-                // Ignore storage failures.
+                preferredMode = "light";
             }
-        });
-    })();
-        document.addEventListener("DOMContentLoaded", () => {
-            const focusRoot = document.querySelector("[data-focus-modules]");
-            if (!focusRoot) return;
 
+            applyTheme(preferredMode);
+
+            toggleLink.addEventListener("click", function (event) {
+                event.preventDefault();
+                const nextMode = body.classList.contains("theme-dark") ? "light" : "dark";
+                applyTheme(nextMode);
+                try {
+                    localStorage.setItem(themeStorageKey, nextMode);
+                } catch (error) {
+                    // Ignore storage failures.
+                }
+            });
+        })();
+
+        document.addEventListener("DOMContentLoaded", () => {
+        const focusRoot = document.querySelector("[data-focus-modules]");
+        if (focusRoot) {
             const toggleBtn = focusRoot.querySelector("[data-focus-toggle]");
             const listEl = focusRoot.querySelector("[data-focus-list]");
-            if (!toggleBtn || !listEl) return;
 
-            toggleBtn.addEventListener("click", () => {
-                const nextOpen = toggleBtn.getAttribute("aria-expanded") !== "true";
-                toggleBtn.setAttribute("aria-expanded", String(nextOpen));
-                toggleBtn.textContent = nextOpen ? "Hide" : "More";
-                listEl.hidden = !nextOpen;
-            });
-        });
+            if (toggleBtn && listEl) {
+                toggleBtn.addEventListener("click", () => {
+                    const isOpen = toggleBtn.getAttribute("aria-expanded") === "true";
+                    const nextOpen = !isOpen;
+                    toggleBtn.setAttribute("aria-expanded", String(nextOpen));
+                    toggleBtn.textContent = nextOpen ? "Hide" : "More";
+                    listEl.hidden = !nextOpen;
+                });
+            }
+        }
+
+        {% block domready %} {% endblock %}
+    });
 
     </script>
 </body>

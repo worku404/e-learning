@@ -1,4 +1,4 @@
-from django.db.models import Sum
+from django.db.models import Sum, F
 from courses.models import Course, Module
 from .models import ModuleProgress
 
@@ -52,14 +52,19 @@ def get_overall_progress(user):
 
     return round((completed_modules / total_modules) * 100, 2)
 
-
 # Top 3 courses
 
-def get_top_courses_by_time(user, limit=3):
+def get_top_modules_by_time(user, limit=3):
     return list(
         ModuleProgress.objects
-        .filter(user_id=user.id, time_spent__gt=0, course__students=user)
-        .values("course_id", "course__title")
-        .annotate(total_time=Sum("time_spent"))
-        .order_by("-total_time")[:limit]
+        .filter(
+            user=user,
+            time_spent__gt=0,
+            course__students=user,
+        )
+        .order_by("-time_spent", "-last_accessed")
+        .values(
+            module_title=F("module__title"),
+            time_spent=F("time_spent"),
+        )[:limit]
     )
