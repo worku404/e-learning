@@ -138,6 +138,12 @@
       </span>
     `.trim();
 
+const highlightGeneratedCode = (container) => {
+  if (!container || !window.hljs) return;
+  container
+    .querySelectorAll(".llm-chat-row--ai .llm-chat-msg pre code")
+    .forEach((block) => hljs.highlightElement(block));
+};
 
 function renderHistory() {
   const container = document.getElementById("history-container");
@@ -167,11 +173,9 @@ function renderHistory() {
   container.scrollTop = Math.min(
     previousScrollTop,
     Math.max(0, container.scrollHeight - container.clientHeight)
-
-  );
   highlightGeneratedCode(container);
 
-}
+  );
  // llm code highlight
   const highlightGeneratedCode = (container) => {
   if (!container || !window.hljs) return;
@@ -180,8 +184,8 @@ function renderHistory() {
     .forEach((block) => hljs.highlightElement(block));
 };
 
-
   renderHistory();
+
   const form = document.getElementById("llm-form");
   const promptInput = document.getElementById("id_prompt");
   if (form && promptInput) {
