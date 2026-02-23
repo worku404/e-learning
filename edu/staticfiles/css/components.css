@@ -1265,3 +1265,92 @@ body.theme-dark .c-focus-modules__name {
 body.theme-dark .c-focus-modules__time {
     color: #f3f8ff;
 }
+
+/* Presence badge */
+.c-presence {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-top: 0.8rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid;
+    font-size: 0.92rem;
+    line-height: 1;
+}
+
+.c-presence__dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: #2ecc71;
+}
+
+.c-presence__label {
+    font-weight: 600;
+    opacity: 0.95;
+}
+
+.c-presence__count {
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+}
+
+.c-presence--desktop {
+    width: 100%;
+    margin-top: auto;
+}
+
+.c-presence--mobile {
+    display: none;
+    margin: 0;
+    padding: 0.32rem 0.6rem;
+    font-size: 0.82rem;
+}
+
+.theme-dark .c-presence {
+    background: rgba(42, 157, 102, 0.12);
+    border-color: rgba(42, 157, 102, 0.45);
+    color: #d8f6e8;
+}
+
+body:not(.theme-dark) .c-presence {
+    background: #ecfdf3;
+    border-color: #8ad8ad;
+    color: #1f5f45;
+}
+
+@media (max-width: 900px) {
+    .c-presence--desktop {
+        display: none;
+    }
+
+    .c-presence--mobile {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.2rem 0.45rem;
+        font-size: 0.75rem;
+        flex: 0 0 auto;
+        max-width: 42%;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .c-presence--mobile .c-presence__label {
+        display: none;
+    }
+
+    .c-presence--mobile .c-presence__dot {
+        width: 0.44rem;
+        height: 0.44rem;
+        flex: 0 0 auto;
+    }
+
+    .c-presence--mobile .c-presence__count {
+        font-size: 0.76rem;
+        letter-spacing: 0;
+    }
+}

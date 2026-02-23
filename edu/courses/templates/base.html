@@ -17,22 +17,30 @@
 
     <header id="header" class="topbar">
         <div class="topbar__inner">
-        <a href="{% url 'course_list' %}" class="topbar__brand" aria-label="Edu Home">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#goldPinkGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="brand-icon">
-                <defs>
-                    <linearGradient id="goldPinkGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stop-color="#ffd54f" />
-                        <stop offset="100%" stop-color="#ff9ec5" />
-                    </linearGradient>
-                </defs>
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-            </svg>
-            <span class="brand-text">
-                <span class="brand-primary">Next</span><span class="brand-divider">&nbsp;</span><span class="brand-secondary">Gen</span>
-            </span>
-
-        </a>
+            <div class="topbar__brand-wrap">
+                <a href="{% url 'course_list' %}" class="topbar__brand" aria-label="Edu Home">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#goldPinkGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="brand-icon">
+                        <defs>
+                            <linearGradient id="goldPinkGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#ffd54f" />
+                                <stop offset="100%" stop-color="#ff9ec5" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                    </svg>
+                    <span class="brand-text">
+                        <span class="brand-primary">Next</span><span class="brand-divider">&nbsp;</span><span class="brand-secondary">Gen</span>
+                    </span>
+                </a>
+                {% if request.user.is_authenticated %}
+                <div class="c-presence c-presence--mobile" data-presence-badge role="status" aria-live="polite">
+                    <span class="c-presence__dot" aria-hidden="true"></span>
+                    <span class="c-presence__label">Online</span>
+                    <strong class="c-presence__count" data-presence-count>--</strong>
+                </div>
+                {% endif %}
+            </div>
 
             <form class="c-search topbar__search" action="{% url 'course_list' %}" method="get" role="search" aria-label="Search courses">
                 <label class="u-sr-only" for="global-search">Search courses</label>
@@ -136,6 +144,15 @@
             </section>
             {% endif %}
             {% endblock %}
+            {% if request.user.is_authenticated %}
+            <div class="c-presence c-presence--desktop" data-presence-badge role="status" aria-live="polite">
+                <span class="c-presence__dot" aria-hidden="true"></span>
+                <span class="c-presence__label">Online</span>
+                <strong class="c-presence__count" data-presence-count>--</strong>
+            </div>
+            {% endif %}
+
+
         </aside>
 
         <section id="content" class="l-main" aria-label="Learning workspace">
@@ -146,31 +163,31 @@
 
         <aside class="l-util" aria-label="Tools and assistant">
             {% if request.user.is_authenticated %}
-<button
-    id="assistant-unhide"
-    class="assistant-unhide"
-    type="button"
-    aria-label="Show AI assistant"
-    aria-controls="assistant-panel"
-    aria-expanded="true"
->
-    <svg class="assistant-unhide__icon"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-    >
-        <rect x="4" y="7" width="16" height="11" rx="4"></rect>
-        <circle cx="9.5" cy="12.5" r="1"></circle>
-        <circle cx="14.5" cy="12.5" r="1"></circle>
-        <path d="M10 15.5h4"></path>
-        <path d="M12 4v3"></path>
-    </svg>
-</button>
+        <button
+            id="assistant-unhide"
+            class="assistant-unhide"
+            type="button"
+            aria-label="Show AI assistant"
+            aria-controls="assistant-panel"
+            aria-expanded="true"
+        >
+            <svg class="assistant-unhide__icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+            >
+                <rect x="4" y="7" width="16" height="11" rx="4"></rect>
+                <circle cx="9.5" cy="12.5" r="1"></circle>
+                <circle cx="14.5" cy="12.5" r="1"></circle>
+                <path d="M10 15.5h4"></path>
+                <path d="M12 4v3"></path>
+            </svg>
+        </button>
                 <section id="assistant-panel" class="assistance c-ai-panel">
                     {% block ai %}
                         {% include "assistant/llm.html" %}
@@ -263,7 +280,91 @@
                 listEl.hidden = !nextOpen;
             });
         });
+        
+    (function () {
+        const badgeEls = Array.from(document.querySelectorAll("[data-presence-badge]"));
+        const countEls = Array.from(document.querySelectorAll("[data-presence-count]"));
+        const dotEls = badgeEls
+            .map((badgeEl) => badgeEl.querySelector(".c-presence__dot"))
+            .filter(Boolean);
 
-    </script>
+        if (!badgeEls.length || !countEls.length) return;
+
+        const pingUrl = "{% url 'presence_ping' %}";
+        const HEARTBEAT_MS = 30000;
+        let timerId = null;
+
+        function getCookie(name) {
+            const cookie = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith(name + "="));
+            return cookie ? decodeURIComponent(cookie.split("=")[1]) : "";
+        }
+
+        function setLiveState(isLive) {
+            dotEls.forEach((dotEl) => {
+                dotEl.style.background = isLive ? "#2ecc71" : "#7f8c8d";
+            });
+            badgeEls.forEach((badgeEl) => {
+                badgeEl.style.opacity = isLive ? "1" : "0.75";
+            });
+        }
+
+        async function pingPresence() {
+            try {
+                const response = await fetch(pingUrl, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                });
+
+                if (!response.ok) {
+                    setLiveState(false);
+                    return;
+                }
+
+                const data = await response.json();
+                const onlineCount = Number.parseInt(data.online_count, 10);
+                const value = Number.isFinite(onlineCount) ? String(onlineCount) : "0";
+                countEls.forEach((countEl) => {
+                    countEl.textContent = value;
+                });
+                setLiveState(true);
+            } catch (error) {
+                setLiveState(false);
+            }
+        }
+
+        function startHeartbeat() {
+            if (timerId !== null) return;
+            timerId = window.setInterval(pingPresence, HEARTBEAT_MS);
+        }
+
+        function stopHeartbeat() {
+            if (timerId === null) return;
+            window.clearInterval(timerId);
+            timerId = null;
+        }
+
+        // First load
+        pingPresence();
+        startHeartbeat();
+
+        // Re-ping when tab becomes active
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                stopHeartbeat();
+            } else {
+                pingPresence();
+                startHeartbeat();
+            }
+        });
+
+        window.addEventListener("beforeunload", stopHeartbeat);
+    })();
+</script>
 </body>
 </html>

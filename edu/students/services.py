@@ -1,8 +1,36 @@
 from django.db.models import Sum
 from courses.models import Course, Module
 from .models import ModuleProgress
+import time
+import redis
+from django.conf import settings
 
+ONLINE_USERS_KEY = "presence:online_users"
+ONLINE_WINDOW_SECONDS = 120  # user is "online" if active in last 120s
 
+_presence_redis = redis.Redis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=settings.REDIS_DB,
+)
+
+def touch_user_presence(user_id: int, window_seconds: int = ONLINE_WINDOW_SECONDS) -> int:
+    now = int(time.time())
+    cutoff = now - window_seconds
+    member = str(user_id)
+    
+    try:
+        pipe = _presence_redis.pipeline()
+        pipe.zadd(ONLINE_USERS_KEY, {member: now})          # upsert heartbeat
+        pipe.zremrangebyscore(ONLINE_USERS_KEY, 0, cutoff)  # remove stale
+        pipe.zcard(ONLINE_USERS_KEY)                        # count online
+        pipe.expire(ONLINE_USERS_KEY, window_seconds * 2)   # safety TTL
+        _, _, online_count, _ = pipe.execute()
+        return int(online_count)
+    
+    except redis.RedisError:
+        return 0
+    
 def mark_module_completed(user, module):
     progress, created = ModuleProgress.objects.get_or_create(
         user=user,

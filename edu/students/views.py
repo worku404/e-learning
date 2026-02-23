@@ -34,8 +34,10 @@ from django.views.generic import TemplateView, DetailView, View
 # Local enrollment form and Course model.
 from .forms import CourseEnrollForm
 from courses.models import Content, Course, File, Image, Module
-from .services import add_time_spent, mark_module_completed
-from .services import get_overall_progress, get_course_time_spent
+from .services import (add_time_spent, mark_module_completed, 
+                       get_overall_progress, get_course_time_spent,
+                        touch_user_presence
+                    )
 
 
 import redis
@@ -264,3 +266,10 @@ class ModuleFilePreviewView(LoginRequiredMixin, View):
 
         # Redirect to the storage URL (signed for private B2).
         return redirect(file_obj.file.url)
+
+
+# Online count
+class PresencePingView(LoginRequiredMixin, View):
+    def post(self, request):
+        online_count = touch_user_presence(request.user.id)
+        return JsonResponse({"online_count": online_count})

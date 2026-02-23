@@ -61,5 +61,11 @@ urlpatterns = [
     views.ModuleFilePreviewView.as_view(),
     name="student_file_view",
 ),
+    path(
+    "presence/ping/",
+    views.PresencePingView.as_view(),
+    name="presence_ping",
+),
+
 
 ]
