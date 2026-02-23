@@ -1,4 +1,4 @@
-{% load static %}
+{% load static course %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +10,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+
 </head>
 <body class="app-body{% if request.user.is_authenticated %} has-assistant assistant-hidden{% endif %}">
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -183,10 +184,9 @@
             {% endif %}
         </aside>
     </main>
-
-    {% block include_js %}{% endblock %}
-    <script>
-        (function () {
+{% block include_js %}{% endblock %}
+<script>
+    (function () {
         const themeStorageKey = "theme_preference";
         const defaultMode = "dark";
         const body = document.body;

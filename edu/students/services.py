@@ -52,7 +52,6 @@ def get_overall_progress(user):
 
     return round((completed_modules / total_modules) * 100, 2)
 
-
 # Top 3 courses
 
 def get_top_courses_by_time(user, limit=3):
