@@ -139,30 +139,48 @@
     `.trim();
 
 
-  function renderHistory() {
-    const container = document.getElementById("history-container");
-    if (!container) return;
+function renderHistory() {
+  const container = document.getElementById("history-container");
+  if (!container) return;
 
-    container.innerHTML = "";
-    history.forEach((item) => {
-      const entry = document.createElement("div");
-      entry.className = "llm-chat-entry";
-      entry.innerHTML = `
-        <div class="llm-chat-row llm-chat-row--user">
-          <div class="llm-chat-bubble llm-chat-bubble--user">
-            <div class="llm-chat-msg">${escapeHtml(item.prompt)}</div>
-          </div>
+  const previousScrollTop = container.scrollTop;
+
+  container.innerHTML = "";
+  history.forEach((item) => {
+    const entry = document.createElement("div");
+    entry.className = "llm-chat-entry";
+    entry.innerHTML = `
+      <div class="llm-chat-row llm-chat-row--user">
+        <div class="llm-chat-bubble llm-chat-bubble--user">
+          <div class="llm-chat-msg">${escapeHtml(item.prompt)}</div>
         </div>
-        <div class="llm-chat-row llm-chat-row--ai">
-          <div class="llm-chat-bubble llm-chat-bubble--ai">
-            <div class="llm-chat-msg">${item.response}</div>
-          </div>
+      </div>
+      <div class="llm-chat-row llm-chat-row--ai">
+        <div class="llm-chat-bubble llm-chat-bubble--ai">
+          <div class="llm-chat-msg">${item.response}</div>
         </div>
-      `;
-      container.appendChild(entry);
-    });
-    container.scrollTop = container.scrollHeight;
-  }
+      </div>
+    `;
+    container.appendChild(entry);
+  });
+
+  container.scrollTop = Math.min(
+    previousScrollTop,
+    Math.max(0, container.scrollHeight - container.clientHeight)
+
+  );
+  highlightGeneratedCode(container);
+
+}
+ // llm code highlight
+  const highlightGeneratedCode = (container) => {
+  if (!container || !window.hljs) return;
+  container
+    .querySelectorAll(".llm-chat-row--ai .llm-chat-msg pre code")
+    .forEach((block) => hljs.highlightElement(block));
+};
+
+
   renderHistory();
   const form = document.getElementById("llm-form");
   const promptInput = document.getElementById("id_prompt");

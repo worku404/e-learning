@@ -149,6 +149,11 @@
 .app-body.has-assistant.assistant-hidden .l-util > * {
     pointer-events: auto;
 }
+@media (min-width: 1024px) {
+    .app-body.has-assistant {
+        --rail-right: 400px; /* small increase from 380px */
+    }
+}
 
 @media (max-width: 1200px) {
     :root {
