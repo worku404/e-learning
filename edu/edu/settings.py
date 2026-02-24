@@ -117,14 +117,27 @@ WSGI_APPLICATION = "edu.wsgi.application"
 #     }
 # }
 
-DATABASE_URL = config("DATABASE_URL", default="").strip()
+# DATABASE_URL = config("DATABASE_URL", default="").strip()
+# DATABASES = {
+#     "default": dj_database_url.parse(
+#         DATABASE_URL,
+#         conn_max_age=600,
+#         ssl_require=True,
+#     )
+# }
+
+DATABASE_URL = config("DATABASE_URL", default="sqlite:///db.sqlite3").strip()
+
+is_postgres = DATABASE_URL.startswith(("postgres://", "postgresql://"))
+
 DATABASES = {
     "default": dj_database_url.parse(
         DATABASE_URL,
         conn_max_age=600,
-        ssl_require=True,
+        ssl_require=is_postgres,
     )
 }
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
