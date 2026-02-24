@@ -132,7 +132,7 @@
                     <ul id="focus-modules-list" class="c-focus-modules__list" data-focus-list hidden>
                         {% for course in top_courses %}
                         <li class="c-focus-modules__item">
-                            <a href="{% url 'student_course_detail' course.course_id %}" style=""><span class="c-focus-modules__name">{{ course.course__title }}</span></a>
+                            <a href="{% url 'student_course_detail' course.course_id %}" style=""><span class="c-focus-modules__name"> {{ course.course__title|truncatechars:25 }}</span></a>
                             <span class="c-focus-modules__time" style="color: #2A9D66;">{{ course.total_time|duration_format }}</span>
                         </li>
                         {% endfor %}
