@@ -7,4 +7,8 @@ websocket_urlpatterns = [
         r'ws/chat/room/(?P<course_id>\d+)/$',
         consumers.ChatConsumer.as_asgi()
     ),
+    re_path(
+        r"ws/notify/$",
+        consumers.NotificationConsumer.as_asgi(),
+    ),
 ]

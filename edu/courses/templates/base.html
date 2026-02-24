@@ -201,6 +201,14 @@
             {% endif %}
         </aside>
     </main>
+{% if request.user.is_authenticated %}
+<section
+    id="chat-notification-stack"
+    class="c-toast-stack"
+    aria-live="polite"
+    aria-atomic="false"
+></section>
+{% endif %}
 {% block include_js %}{% endblock %}
 <script>
     (function () {
@@ -365,6 +373,129 @@
 
         window.addEventListener("beforeunload", stopHeartbeat);
     })();
+
+    (function () {
+        const stack = document.getElementById("chat-notification-stack");
+        if (!stack) return;
+
+        const shownMessageIds = new Set();
+        let socket = null;
+        let reconnectDelay = 1000;
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function isInsideSameChatRoom(courseId) {
+            const path = window.location.pathname || "";
+            return path === `/chat/room/${courseId}/`;
+        }
+
+        function createToast(item) {
+            if (!item || !item.message_id) return null;
+            if (shownMessageIds.has(item.message_id)) return null;
+            if (isInsideSameChatRoom(item.course_id)) return null;
+
+            shownMessageIds.add(item.message_id);
+
+            const toast = document.createElement("article");
+            toast.className = "c-toast";
+            toast.innerHTML = `
+                <div class="c-toast__head">
+                    <strong class="c-toast__title">${escapeHtml(item.course_title || "Course chat")}</strong>
+                    <button type="button" class="c-toast__close" aria-label="Dismiss notification">&times;</button>
+                </div>
+                <p class="c-toast__meta">
+                    ${escapeHtml(item.from_user || "User")} sent a message
+                </p>
+                <p class="c-toast__body">${escapeHtml(item.message_preview || "")}</p>
+                <a class="c-toast__link" href="/chat/room/${item.course_id}/">Open chat</a>
+            `;
+
+            const closeBtn = toast.querySelector(".c-toast__close");
+            if (closeBtn) {
+                closeBtn.addEventListener("click", () => {
+                    toast.remove();
+                });
+            }
+
+            setTimeout(() => {
+                toast.remove();
+            }, 20000);
+
+            return toast;
+        }
+
+        function showToast(item) {
+            const toast = createToast(item);
+            if (!toast) return;
+            stack.prepend(toast);
+        }
+
+        function connectNotificationSocket() {
+            const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+            socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/notify/`);
+
+            socket.onopen = function () {
+                reconnectDelay = 1000;
+            };
+
+            socket.onmessage = function (event) {
+                try {
+                    const payload = JSON.parse(event.data);
+                    showToast(payload);
+                } catch (error) {
+                    // Ignore malformed payloads.
+                }
+            };
+
+            socket.onclose = function () {
+                setTimeout(connectNotificationSocket, reconnectDelay);
+                reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+            };
+        }
+
+        let shouldBootstrap = true;
+        try {
+            const bootstrapKey = "chat_notifications_bootstrap_done";
+            if (sessionStorage.getItem(bootstrapKey) === "1") {
+                shouldBootstrap = false;
+            } else {
+                sessionStorage.setItem(bootstrapKey, "1");
+            }
+        } catch (error) {
+            shouldBootstrap = true;
+        }
+
+        if (shouldBootstrap) {
+            fetch("{% url 'chat:notifications_bootstrap' %}", {
+                credentials: "same-origin",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            })
+                .then((response) => response.ok ? response.json() : { items: [] })
+                .then((data) => {
+                    (data.items || []).forEach((item) => {
+                        showToast(item);
+                    });
+                })
+                .catch(() => {
+                    // Silent failure.
+                });
+        }
+
+        connectNotificationSocket();
+    })();
+
+    document.addEventListener("DOMContentLoaded", function () {
+        {% block domready %}{% endblock %}
+    });
 </script>
 </body>
 </html>

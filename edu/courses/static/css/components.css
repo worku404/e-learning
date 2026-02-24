@@ -1365,3 +1365,80 @@ body:not(.theme-dark) .c-presence {
         letter-spacing: 0;
     }
 }
+
+.c-toast-stack {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 1500;
+    display: grid;
+    gap: 0.65rem;
+    width: min(360px, calc(100vw - 1.5rem));
+    pointer-events: none;
+}
+
+.c-toast {
+    pointer-events: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface);
+    box-shadow: 0 10px 30px rgba(var(--color-shadow), 0.2);
+    padding: 0.7rem 0.8rem;
+    display: grid;
+    gap: 0.4rem;
+}
+
+.c-toast__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.c-toast__title {
+    font-size: 0.92rem;
+    line-height: 1.2;
+}
+
+.c-toast__close {
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-muted);
+    border-radius: 8px;
+    min-width: 28px;
+    min-height: 28px;
+    line-height: 1;
+}
+
+.c-toast__meta {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+}
+
+.c-toast__body {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.35;
+    color: var(--color-text);
+}
+
+.c-toast__link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-accent);
+}
+
+body.theme-dark .c-toast {
+    background: color-mix(in srgb, var(--color-surface) 90%, #0b1320);
+    border-color: color-mix(in srgb, var(--color-border) 80%, #0b1320);
+}
+
+@media (max-width: 900px) {
+    .c-toast-stack {
+        right: 0.65rem;
+        left: 0.65rem;
+        width: auto;
+        bottom: 0.65rem;
+    }
+}

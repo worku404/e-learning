@@ -1,4 +1,3 @@
-{# filepath: c:\Users\hi\Downloads\webdev\Django_Projects\e-learning\edu\chat\templates\chat\room.html #}
 {% extends "base.html" %}
 {% block title %}Chat room for "{% if course is not None %}{{ course.title }}{% endif %}"{% endblock %}
 
@@ -7,18 +6,21 @@
     <section id="chat-room-shell" aria-label="Course chat room">
         <div id="chat" aria-live="polite">
             {% for message in latest_messages %}
-                <div class="message {% if message.user == request.user %} me {% else %} other {% endif %}">
-                    <div class="meta"> 
+                <div
+                    class="message {% if message.user == request.user %}me{% else %}other{% endif %}"
+                    data-message-id="{{ message.id }}"
+                >
+                    <div class="meta">
                         <strong>
-                            {% if message.user == request.user %}Me{% else %}{{ message.user.username }}{% endif %}&nbsp;
+                            {% if message.user == request.user %}Me{% else %}{{ message.user.username }}{% endif %}
                         </strong>
                         <span class="date">{{ message.sent_on|date:"Y.m.d H:i A" }}</span>
                     </div>
-                   <div class="text">  {{message.content}}  </div> 
+                    <div class="text">{{ message.content }}</div>
                 </div>
             {% empty %}
                 <section id="chat-empty-state" class="chat-empty-state" role="status">
-                    <div class="chat-empty-state__emoji" aria-hidden="true">💬</div>
+                    <div class="chat-empty-state__emoji" aria-hidden="true">?</div>
                     <h2 class="chat-empty-state__title">Ask anything</h2>
                     <p class="chat-empty-state__text">
                         Your friends can answer your question, or you can start a discussion here.
@@ -39,129 +41,165 @@
     {{ request.user.username|json_script:"request-user" }}
 {% endblock %}
 
-
-
 {% block domready %}
-    const courseId = JSON.parse(
-        document.getElementById('course-id').textContent
-    );
-    const requestUser = JSON.parse(
-        document.getElementById('request-user').textContent
-    );
-    
-    // --- WebSocket Logic (Keep existing connection) ---
-    const url = 'wss://' + window.location.host + '/ws/chat/room/' + courseId + '/';
-    const chatSocket = new WebSocket(url);
-    const chat = document.getElementById('chat');
-    const emptyState = document.getElementById('chat-empty-state');
+    const courseId = JSON.parse(document.getElementById("course-id").textContent);
+    const requestUser = JSON.parse(document.getElementById("request-user").textContent);
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/room/${courseId}/`);
+    const chat = document.getElementById("chat");
+    const emptyState = document.getElementById("chat-empty-state");
+    const input = document.getElementById("chat-message-input");
+    const submitButton = document.getElementById("chat-message-submit");
 
-    const syncEmptyState = () => {
-        if (!emptyState) {
-            return;
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function getCookie(name) {
+        const cookie = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith(name + "="));
+        return cookie ? decodeURIComponent(cookie.split("=")[1]) : "";
+    }
+
+    function syncEmptyState() {
+        if (!emptyState) return;
+        emptyState.hidden = chat.querySelector(".message") !== null;
+    }
+
+    function getLatestMessageId() {
+        let maxId = 0;
+        chat.querySelectorAll(".message[data-message-id]").forEach((node) => {
+            const current = Number.parseInt(node.dataset.messageId || "0", 10);
+            if (Number.isFinite(current) && current > maxId) {
+                maxId = current;
+            }
+        });
+        return maxId;
+    }
+
+    async function markRoomRead(lastMessageId) {
+        if (!lastMessageId) return;
+        const body = new URLSearchParams({ last_message_id: String(lastMessageId) });
+        try {
+            await fetch(`/chat/room/${courseId}/mark-read/`, {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                body: body.toString(),
+            });
+        } catch (error) {
+            // Non-critical path; ignore transient failures.
         }
-        emptyState.hidden = chat.querySelector('.message') !== null;
-    };
+    }
 
-    // Scroll to bottom initially
+    function appendMessage({ messageId, source, name, datetime, content }) {
+        chat.insertAdjacentHTML(
+            "beforeend",
+            `
+            <div class="message ${source}" data-message-id="${Number(messageId) || 0}">
+                <div class="meta">
+                    <strong>${escapeHtml(name)}</strong>
+                    <span class="date">${escapeHtml(datetime)}</span>
+                </div>
+                <div class="text">${escapeHtml(content)}</div>
+            </div>
+            `
+        );
+        syncEmptyState();
+    }
+
     syncEmptyState();
     chat.scrollTop = chat.scrollHeight;
+    markRoomRead(getLatestMessageId());
 
-    chatSocket.onmessage = function(event) {
+    chatSocket.onmessage = function (event) {
         const data = JSON.parse(event.data);
-        const dateOptions = {hour: 'numeric', minute: 'numeric', hour12: true};
-        const datetime = new Date(data.datetime).toLocaleString('en', dateOptions);
+        const datetime = new Date(data.datetime).toLocaleString("en", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+        });
         const isMe = data.user === requestUser;
-        const source = isMe ? 'me' : 'other';
-        const name = isMe ? 'Me' : data.user;
 
-        chat.innerHTML +=
-            '<div class="message ' + source + '">' +
-                '<div class="meta">' +
-                    '<strong>' + name + '</strong> ' +
-                    '<span class="date">' + datetime + '</span>' +
-                '</div>' +
-                '<div class="text">' + data.message + '</div>' +
-            '</div>';
-        syncEmptyState();
-
-        // Only auto-scroll if user was already near bottom
+        appendMessage({
+            messageId: data.message_id || 0,
+            source: isMe ? "me" : "other",
+            name: isMe ? "Me" : data.user,
+            datetime: datetime,
+            content: data.message,
+        });
         chat.scrollTop = chat.scrollHeight;
+        markRoomRead(getLatestMessageId());
     };
 
-    chatSocket.onclose = function(event) {
-        console.error('Chat socket closed unexpectedly.');
+    chatSocket.onclose = function () {
+        console.error("Chat socket closed unexpectedly.");
     };
 
-    const input = document.getElementById('chat-message-input');
-    const submitButton = document.getElementById('chat-message-submit');
-
-    submitButton.addEventListener('click', function() {
+    submitButton.addEventListener("click", function () {
         const message = input.value.trim();
-        if (message) {
-            chatSocket.send(JSON.stringify({ 'message': message }));
-            input.value = '';
-            input.focus();
-        }
+        if (!message) return;
+        chatSocket.send(JSON.stringify({ message: message }));
+        input.value = "";
+        input.focus();
     });
 
-    input.addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
+    input.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
             event.preventDefault();
             submitButton.click();
         }
     });
 
-    // --- INFINITE SCROLL LOGIC ---
-    let page = 2; // We already loaded page 1 (first 100) via Django template
+    let page = 2;
     let blockRequest = false;
-    let emptyPage = false; 
+    let emptyPage = false;
 
-    chat.addEventListener('scroll', function() {
-        // Check if scrolled to top (scrollTop is 0)
-        if (this.scrollTop === 0 && !blockRequest && !emptyPage) {
-            blockRequest = true;
-            
-            // Save current scroll height to restore position later
-            const previousHeight = chat.scrollHeight;
+    chat.addEventListener("scroll", function () {
+        if (this.scrollTop !== 0 || blockRequest || emptyPage) return;
+        blockRequest = true;
+        const previousHeight = chat.scrollHeight;
 
-            // Fetch older messages
-            fetch(`/chat/history/${courseId}/?page=${page}`)
-            .then(response => response.json())
-            .then(data => {
+        fetch(`/chat/history/${courseId}/?page=${page}`)
+            .then((response) => response.json())
+            .then((data) => {
                 if (data.messages.length === 0) {
                     emptyPage = true;
-                } else {
-                    let html = '';
-                    data.messages.forEach(msg => {
-                        const source = msg.is_me ? 'me' : 'other';
-                        const name = msg.is_me ? 'Me' : msg.user;
-                        
-                        html += `
-                            <div class="message ${source}">
-                                <div class="meta">
-                                    <strong>${name}</strong>
-                                    <span class="date">${msg.sent_on}</span>
-                                </div>
-                                <div class="text">${msg.content}</div>
-                            </div>
-                        `;
-                    });
-
-                    // Insert OLD messages at the TOP
-                    chat.insertAdjacentHTML('afterbegin', html);
-                    syncEmptyState();
-                    
-                    // Restore scroll position so user sees the same message they were looking at
-                    chat.scrollTop = chat.scrollHeight - previousHeight;
-                    
-                    page += 1;
                     blockRequest = false;
+                    return;
                 }
+
+                let html = "";
+                data.messages.forEach((msg) => {
+                    html += `
+                        <div class="message ${msg.is_me ? "me" : "other"}" data-message-id="${Number(msg.id) || 0}">
+                            <div class="meta">
+                                <strong>${escapeHtml(msg.is_me ? "Me" : msg.user)}</strong>
+                                <span class="date">${escapeHtml(msg.sent_on)}</span>
+                            </div>
+                            <div class="text">${escapeHtml(msg.content)}</div>
+                        </div>
+                    `;
+                });
+
+                chat.insertAdjacentHTML("afterbegin", html);
+                syncEmptyState();
+                chat.scrollTop = chat.scrollHeight - previousHeight;
+                page += 1;
+                blockRequest = false;
             })
-            .catch(err => {
-                console.error('Error fetching history:', err);
+            .catch(() => {
                 blockRequest = false;
             });
-        }
     });
 {% endblock %}
