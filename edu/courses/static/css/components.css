@@ -1241,6 +1241,9 @@ body:not(.theme-dark) .course-time__value {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+.c-focus-modules__name:hover {
+    color: lightgreen !important;
+}
 
 .c-focus-modules__time {
     color: var(--color-text);
