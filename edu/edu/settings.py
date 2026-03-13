@@ -53,7 +53,7 @@ INSTALLED_APPS = [
 
     # Third-party apps
     "embed_video",   # Embed and render video content in templates/models
-    "debug_toolbar", # Development-time request/SQL/debug inspection
+    # "debug_toolbar", # Development-time request/SQL/debug inspection
     "redisboard",    # Redis monitoring dashboard
     'rest_framework', # To build an API
     'rest_framework.authtoken', # DRF token authentication model
@@ -64,7 +64,7 @@ INSTALLED_APPS = [
 
 # Middleware pipeline (request/response processing order matters)
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",          # Third-party middleware
+    # "debug_toolbar.middleware.DebugToolbarMiddleware",          # Third-party middleware
     "django.middleware.security.SecurityMiddleware",            # Built-in: security headers and protections
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",     # Built-in: session support
@@ -176,9 +176,9 @@ if USE_B2:
     AWS_DEFAULT_ACL = None
     AWS_S3_FILE_OVERWRITE = False
     AWS_QUERYSTRING_AUTH = True  # private bucket
-    AWS_QUERYSTRING_EXPIRE = 3600
+    AWS_QUERYSTRING_EXPIRE = 604800
     AWS_S3_OBJECT_PARAMETERS = {
-    "CacheControl": "private, max-age=3600",
+    "CacheControl": "private, max-age=604800",
 }
 
     STORAGES = {
@@ -243,7 +243,7 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 # Cache middleware settings
 CACHE_MIDDLEWARE_ALIAS = "default"
-CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutes
+CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 24 * 7 #  minutes
 CACHE_MIDDLEWARE_KEY_PREFIX = "educa"
 
 
@@ -254,7 +254,7 @@ API3_KEY = os.getenv("API3_KEY")
 API4_KEY = os.getenv("API4_KEY")
 CHAT_MAX_MESSAGES_PER_COURSE = config(
     "CHAT_MAX_MESSAGES_PER_COURSE",
-    default=1000,
+    default=500,
     cast=int,
 )
 
