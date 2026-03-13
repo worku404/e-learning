@@ -41,7 +41,7 @@ from students.forms import CourseEnrollForm
 
 
 # Shared cache duration for public course list data.
-COURSE_LIST_CACHE_TTL = 60 * 15 # 15 minutes
+COURSE_LIST_CACHE_TTL = 60 * 60 * 24 * 7 # 7 days
 
 
 # -------------------------------------------------------------------
