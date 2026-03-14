@@ -1,9 +1,27 @@
 .app-body {
     --util-width: var(--rail-right);
+    /* Keep default rail widths unless the AI sidebar is expanded. */
+    --rail-left-current: var(--rail-left);
+    --workspace-modules-min-current: var(--course-modules-min);
+    --workspace-modules-max-current: var(--course-modules-max);
 }
 
 .app-body.has-assistant.assistant-hidden {
     --util-width: 0px;
+}
+
+.app-body.has-assistant.assistant-sidebar-open {
+    /* Reclaim horizontal space from left rails when chat sidebar is open. */
+    --rail-left-current: var(--rail-left-compact);
+    --workspace-modules-min-current: var(--course-modules-min-compact);
+    --workspace-modules-max-current: var(--course-modules-max-compact);
+}
+
+.app-body.has-assistant.assistant-sidebar-open .l-shell {
+    /* Match left-side tightness: no extra grid spacer when AI rail is open. */
+    column-gap: 0;
+    /* Remove right shell padding so the fixed AI panel aligns with grid edge. */
+    padding-right: 0;
 }
 
 .skip-link {
@@ -117,7 +135,7 @@
     padding: var(--space-4);
     display: grid;
     gap: var(--space-4);
-    grid-template-columns: var(--rail-left) minmax(0, 1fr) var(--util-width);
+    grid-template-columns: var(--rail-left-current) minmax(0, 1fr) var(--util-width);
     align-items: start;
     transition: grid-template-columns 0.2s ease;
 }
@@ -160,7 +178,8 @@
 }
 @media (min-width: 1024px) {
     .app-body.has-assistant {
-        --rail-right: 400px; /* small increase from 380px */
+        /* Match a Copilot-like sidebar width on desktop. */
+        --rail-right: 500px;
     }
 }
 

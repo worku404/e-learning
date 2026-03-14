@@ -1,6 +1,6 @@
 # URL pattern helper.
 from django.urls import path
-from .views import TrackTimeView, MarkModuleCompleteView
+from .views import TrackContentProgressView, TrackTimeView, MarkModuleCompleteView
 # Student app views used by these routes.
 from . import views
 
@@ -42,6 +42,11 @@ urlpatterns = [
          TrackTimeView.as_view(),
          name='track_time'),
     path(
+        "content/<int:content_id>/progress/",
+        TrackContentProgressView.as_view(),
+        name="track_content_progress",
+    ),
+    path(
         "file/<int:file_id>/download/",
         views.DownloadModuleFileView.as_view(),
         name="student_file_download",
@@ -65,6 +70,12 @@ urlpatterns = [
     "presence/ping/",
     views.PresencePingView.as_view(),
     name="presence_ping",
+),
+    path(
+    "system/stop-local-stack/",
+    # Local developer endpoint: triggers stop.ps1 and shuts down local stack.
+    views.StopLocalStackView.as_view(),
+    name="stop_local_stack",
 ),
 
 
