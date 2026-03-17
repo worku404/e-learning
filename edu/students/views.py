@@ -57,6 +57,35 @@ r = redis.Redis(
 )
 
 
+def _migration_0002_ready() -> bool:
+    """
+    Guard against runtime crashes when migration 0002 has not yet been applied.
+
+    Why this exists:
+    - Migration 0002 adds the ContentProgress table and the progress_percent
+      column to ModuleProgress.
+    - If it hasn't run, querying either of those raises a ProgrammingError /
+      OperationalError.  This check lets pages render with a safe fallback.
+    """
+    try:
+        tables = connection.introspection.table_names()
+        if ContentProgress._meta.db_table not in tables:
+            return False
+        # Also confirm the progress_percent column exists on ModuleProgress.
+        mp_table = ModuleProgress._meta.db_table
+        if mp_table not in tables:
+            return False
+        mp_columns = {
+            col.name
+            for col in connection.introspection.get_table_description(
+                connection.cursor(), mp_table
+            )
+        }
+        return "progress_percent" in mp_columns
+    except (ProgrammingError, OperationalError):
+        return False
+
+
 def _course_progress_table_ready() -> bool:
     """
     Guard against runtime crashes when code is deployed before migrations run.
@@ -197,10 +226,20 @@ class StudentCourseDetailView(LoginRequiredMixin, DetailView):
             module = modules[0] if modules else None
 
         # Load and attach per-module progress rows so the template can render module percentages.
-        module_progress_rows = {
-            row.module_id: row
-            for row in ModuleProgress.objects.filter(user=user, course=course)
-        }
+        # Guard against migration 0002 not yet being applied (ModuleProgress.progress_percent
+        # column and ContentProgress table are both introduced by that migration).
+        migration_0002_ready = _migration_0002_ready()
+
+        module_progress_rows: dict[int, ModuleProgress] = {}
+        if migration_0002_ready:
+            try:
+                module_progress_rows = {
+                    row.module_id: row
+                    for row in ModuleProgress.objects.filter(user=user, course=course)
+                }
+            except (ProgrammingError, OperationalError):
+                module_progress_rows = {}
+
         for module_item in modules:
             module_row = module_progress_rows.get(module_item.id)
             module_item.student_progress_percent = round(
@@ -220,8 +259,8 @@ class StudentCourseDetailView(LoginRequiredMixin, DetailView):
                 course_progress = None
 
         if course_progress is None:
-            # Fallback when CourseProgress table is unavailable:
-            # derive a temporary course percentage from existing module rows.
+            # Fallback when CourseProgress table is unavailable (or migration 0002 is pending):
+            # derive a temporary course percentage from any available module rows.
             total_modules = len(modules)
             accumulated_percent = 0.0
             completed_modules = 0
@@ -245,14 +284,21 @@ class StudentCourseDetailView(LoginRequiredMixin, DetailView):
             )
 
         # Build a concrete list of module contents, and attach content progress state.
+        # ContentProgress is also gated on migration 0002 being applied.
         module_contents = list(module.contents.select_related("content_type")) if module else []
-        content_progress_rows = {
-            row.content_id: row
-            for row in ContentProgress.objects.filter(
-                user=user,
-                content__in=module_contents,
-            )
-        }
+        content_progress_rows: dict[int, ContentProgress] = {}
+        if migration_0002_ready:
+            try:
+                content_progress_rows = {
+                    row.content_id: row
+                    for row in ContentProgress.objects.filter(
+                        user=user,
+                        content__in=module_contents,
+                    )
+                }
+            except (ProgrammingError, OperationalError):
+                content_progress_rows = {}
+
         for content_item in module_contents:
             progress_row = content_progress_rows.get(content_item.id)
             content_item.student_progress_percent = round(
