@@ -24,6 +24,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.utils.cache import patch_response_headers
+from django.utils.http import content_disposition_header
 
 # Auth helpers and login-protection mixin.
 from django.contrib.auth import authenticate, login
@@ -525,7 +526,7 @@ class ModuleFilePreviewView(LoginRequiredMixin, View):
             raise Http404("File not found.") from exc
 
         # Force inline rendering in browser viewers (PDF/image support).
-        response["Content-Disposition"] = f'inline; filename="{filename}"'
+        response["Content-Disposition"] = content_disposition_header(as_attachment=False, filename=filename)
         patch_response_headers(response, cache_timeout=0)
         return response
 
