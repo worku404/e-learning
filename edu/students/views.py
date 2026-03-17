@@ -230,7 +230,7 @@ class StudentCourseDetailView(LoginRequiredMixin, DetailView):
         # column and ContentProgress table are both introduced by that migration).
         migration_0002_ready = _migration_0002_ready()
 
-        module_progress_rows: dict = {}
+        module_progress_rows: dict[int, ModuleProgress] = {}
         if migration_0002_ready:
             try:
                 module_progress_rows = {
@@ -286,7 +286,7 @@ class StudentCourseDetailView(LoginRequiredMixin, DetailView):
         # Build a concrete list of module contents, and attach content progress state.
         # ContentProgress is also gated on migration 0002 being applied.
         module_contents = list(module.contents.select_related("content_type")) if module else []
-        content_progress_rows: dict = {}
+        content_progress_rows: dict[int, ContentProgress] = {}
         if migration_0002_ready:
             try:
                 content_progress_rows = {
