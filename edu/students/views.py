@@ -487,7 +487,7 @@ class ModuleImageView(LoginRequiredMixin, View):
         except FileNotFoundError as exc:
             raise Http404("Image not found.") from exc
 
-# pdf previw page
+# pdf preview page
 
 class ModuleFilePreviewView(LoginRequiredMixin, View):
     """
