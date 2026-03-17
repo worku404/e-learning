@@ -168,8 +168,25 @@
 {% endblock %}
 
 {% block include_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
+// Conditionally load pdf.js only if a PDF viewer is present on the page
+(function () {
+    var pdfViewerEl = document.querySelector(".js-pdf-viewer");
+    if (!pdfViewerEl) {
+        return;
+    }
+
+    var existingPdfScript = document.querySelector('script[src*="cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"]');
+    if (existingPdfScript) {
+        return;
+    }
+
+    var pdfScript = document.createElement("script");
+    pdfScript.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    pdfScript.defer = true;
+    document.head.appendChild(pdfScript);
+})();
+
 window.addEventListener("pageshow", function (event) {
     if (event.persisted) window.location.reload();
 });
