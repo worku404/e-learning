@@ -12,6 +12,19 @@
 {{ llm_history|json_script:"llm-history" }}
 
 <form id="llm-form" class="llm-form" autocomplete="off">
+  <button
+    id="llm-scroll-bottom"
+    class="llm-scroll-bottom"
+    type="button"
+    aria-label="Scroll to latest message"
+    title="Scroll to bottom"
+    hidden
+  >
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14" />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.5L12 19l4.5-4.5" />
+    </svg>
+  </button>
   {% csrf_token %}
   <div class="llm-composer">
     <div class="llm-input">
@@ -23,11 +36,18 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
         </svg>
       </button> {% endcomment %}
-      <button class="llm-btn llm-btn--send" type="submit" aria-label="Send message">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 17V7" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 11.5L12 7l4.5 4.5" />
-        </svg>
+      <button class="llm-btn llm-btn--send" type="submit" aria-label="Send message" title="Send message">
+        <span class="llm-send-icon llm-send-icon--send" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 17V7" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 11.5L12 7l4.5 4.5" />
+          </svg>
+        </span>
+        <span class="llm-send-icon llm-send-icon--stop" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <rect x="7.2" y="7.2" width="9.6" height="9.6" rx="2.1" fill="currentColor"></rect>
+          </svg>
+        </span>
       </button>
     </div>
   </div>
@@ -81,7 +101,53 @@
     bodyEl.classList.add("assistant-sidebar-open");
     persistAssistantState("sidebar");
     syncAssistantLauncher();
+    window.requestAnimationFrame(updateScrollBottomVisibility);
   };
+
+  const focusAssistantPrompt = () => {
+    const prompt = document.getElementById("id_prompt");
+    if (!prompt) return;
+    prompt.focus();
+    // Keep caret at end of existing text for quick continuation.
+    if (typeof prompt.setSelectionRange === "function") {
+      const end = (prompt.value || "").length;
+      prompt.setSelectionRange(end, end);
+    }
+  };
+
+  const isEditableTarget = (target) => {
+    if (!target) return false;
+    const tagName = target.tagName;
+    // Do not steal Ctrl/Cmd+B while user is typing in editable controls.
+    return target.isContentEditable || tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
+  };
+
+  const toggleAssistantSidebar = () => {
+    const isHidden = bodyEl.classList.contains("assistant-hidden");
+    const isSidebarOpen = bodyEl.classList.contains("assistant-sidebar-open");
+    // Toggle between hidden and sidebar-open states.
+    if (!isHidden && isSidebarOpen) {
+      hideAssistant();
+      return;
+    }
+    openAssistantSidebar();
+    focusAssistantPrompt();
+  };
+
+  document.addEventListener("keydown", function (event) {
+    const isToggleShortcut =
+      (event.ctrlKey || event.metaKey) &&
+      !event.altKey &&
+      !event.shiftKey &&
+      String(event.key).toLowerCase() === "b";
+
+    if (!isToggleShortcut) return;
+    // Allow toggle inside the assistant prompt itself so Ctrl/Cmd+B can also close.
+    if (isEditableTarget(event.target) && event.target?.id !== "id_prompt") return;
+    // Prevent browser default (for example bookmarks toggle) and handle sidebar toggle.
+    event.preventDefault();
+    toggleAssistantSidebar();
+  });
 
   if (assistantPanel) {
     updateAssistantOffset();
@@ -96,8 +162,7 @@
     if (assistantLauncher) {
       assistantLauncher.addEventListener("click", () => {
         openAssistantSidebar();
-        const prompt = document.getElementById("id_prompt");
-        if (prompt) prompt.focus();
+        focusAssistantPrompt();
       });
     }
 
@@ -106,6 +171,8 @@
   }
 
   const historyEl = document.getElementById("llm-history");
+  const historyContainerEl = document.getElementById("history-container");
+  const scrollBottomBtn = document.getElementById("llm-scroll-bottom");
   let history = [];
 
   if (historyEl) {
@@ -138,38 +205,277 @@
       </span>
     `.trim();
 
+  const copyIconMarkup = `
+    <span class="llm-copy-btn__icon llm-copy-btn__icon--copy" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+    </span>
+    <span class="llm-copy-btn__icon llm-copy-btn__icon--check" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.2 4.2L19 7.2"></path>
+      </svg>
+    </span>
+  `.trim();
 
-function renderHistory() {
-  const container = document.getElementById("history-container");
+const isHistoryNearBottom = (container, threshold = 14) => {
+  if (!container) return true;
+  return container.scrollTop + container.clientHeight >= container.scrollHeight - threshold;
+};
+
+const updateScrollBottomVisibility = () => {
+  if (!historyContainerEl || !scrollBottomBtn) return;
+  const hasOverflow = historyContainerEl.scrollHeight > historyContainerEl.clientHeight + 2;
+  const shouldShow = hasOverflow && !isHistoryNearBottom(historyContainerEl);
+  scrollBottomBtn.hidden = !shouldShow;
+  scrollBottomBtn.classList.toggle("is-visible", shouldShow);
+};
+
+const copyTextToClipboard = async (text) => {
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  // Clipboard API fallback for older browsers.
+  const helper = document.createElement("textarea");
+  helper.value = text;
+  helper.setAttribute("readonly", "");
+  helper.style.position = "fixed";
+  helper.style.top = "-9999px";
+  helper.style.left = "-9999px";
+  document.body.appendChild(helper);
+  helper.focus();
+  helper.select();
+  const success = document.execCommand("copy");
+  helper.remove();
+  if (!success) {
+    throw new Error("copy-failed");
+  }
+};
+
+const setCopyButtonFeedback = (button, copied) => {
+  if (!button) return;
+  if (button._copyFeedbackTimer) {
+    window.clearTimeout(button._copyFeedbackTimer);
+  }
+
+  button.classList.remove("is-copied", "is-copy-failed");
+  button.classList.add(copied ? "is-copied" : "is-copy-failed");
+  const defaultLabel = button.getAttribute("data-copy-default") || "Copy";
+  const copiedLabel = button.getAttribute("data-copy-copied") || "Copied";
+  const failedLabel = button.getAttribute("data-copy-failed") || "Copy failed";
+  const activeLabel = copied ? copiedLabel : failedLabel;
+
+  button.setAttribute("aria-label", activeLabel);
+  button.setAttribute("title", activeLabel);
+
+  button._copyFeedbackTimer = window.setTimeout(() => {
+    button.classList.remove("is-copied", "is-copy-failed");
+    button.setAttribute("aria-label", defaultLabel);
+    button.setAttribute("title", defaultLabel);
+  }, 1200);
+};
+
+const enhanceChatTables = (container) => {
   if (!container) return;
 
+  container.querySelectorAll(".llm-chat-row--ai .llm-chat-msg table").forEach((table) => {
+    table.classList.add("llm-chat-table");
+
+    if (!table.parentElement || !table.parentElement.classList.contains("llm-chat-table-wrap")) {
+      // Wrap each table to enable horizontal scrolling without shrinking text size.
+      const wrap = document.createElement("div");
+      wrap.className = "llm-chat-table-wrap";
+      table.parentNode.insertBefore(wrap, table);
+      wrap.appendChild(table);
+    }
+
+    // Collect header labels for stacked mobile fallback.
+    let headerCells = Array.from(table.querySelectorAll("thead tr:first-child th"));
+    if (!headerCells.length) {
+      const firstRow = table.querySelector("tr");
+      if (firstRow) {
+        headerCells = Array.from(firstRow.children);
+      }
+    }
+
+    const headerLabels = headerCells.map((cell, index) => {
+      const text = (cell.textContent || "").trim();
+      return text || `Column ${index + 1}`;
+    });
+
+    let dataRows = Array.from(table.querySelectorAll("tbody tr"));
+    if (!dataRows.length) {
+      const rows = Array.from(table.querySelectorAll("tr"));
+      dataRows = rows.slice(headerCells.length ? 1 : 0);
+    }
+
+    dataRows.forEach((row) => {
+      Array.from(row.children).forEach((cell, index) => {
+        if (cell.tagName !== "TD") return;
+        cell.setAttribute("data-label", headerLabels[index] || `Column ${index + 1}`);
+      });
+    });
+  });
+};
+
+const enhanceCodeCopyButtons = (container) => {
+  if (!container) return;
+
+  container.querySelectorAll(".llm-chat-row--ai .llm-chat-msg pre").forEach((preEl) => {
+    let wrap = preEl.parentElement;
+    if (!wrap || !wrap.classList.contains("llm-code-block-wrap")) {
+      // Group each code block with its own copy control.
+      wrap = document.createElement("div");
+      wrap.className = "llm-code-block-wrap";
+      preEl.parentNode.insertBefore(wrap, preEl);
+      wrap.appendChild(preEl);
+    }
+
+    if (wrap.querySelector(".llm-copy-code")) return;
+
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "llm-copy-btn llm-copy-code";
+    copyBtn.setAttribute("aria-label", "Copy code");
+    copyBtn.setAttribute("title", "Copy code");
+    copyBtn.setAttribute("data-copy-default", "Copy code");
+    copyBtn.setAttribute("data-copy-copied", "Copied");
+    copyBtn.setAttribute("data-copy-failed", "Failed");
+    copyBtn.innerHTML = copyIconMarkup;
+    wrap.appendChild(copyBtn);
+  });
+};
+
+if (historyContainerEl) {
+  historyContainerEl.addEventListener("scroll", updateScrollBottomVisibility, { passive: true });
+}
+
+if (scrollBottomBtn && historyContainerEl) {
+  scrollBottomBtn.addEventListener("click", function () {
+    historyContainerEl.scrollTo({
+      top: historyContainerEl.scrollHeight,
+      behavior: "smooth",
+    });
+    // Recheck visibility once smooth scroll settles.
+    window.setTimeout(updateScrollBottomVisibility, 220);
+  });
+}
+
+if (historyContainerEl) {
+  historyContainerEl.addEventListener("click", async function (event) {
+    const copyBtn = event.target.closest(".llm-copy-btn");
+    if (!copyBtn || copyBtn.disabled) return;
+    event.preventDefault();
+
+    let textToCopy = "";
+    if (copyBtn.classList.contains("llm-copy-code")) {
+      const codeEl = copyBtn.closest(".llm-code-block-wrap")?.querySelector("pre code, pre");
+      textToCopy = (codeEl?.textContent || "").trim();
+    } else {
+      const scope = copyBtn.getAttribute("data-copy-scope");
+      let bubbleEl = copyBtn.closest(".llm-chat-bubble");
+      if (!bubbleEl) {
+        const entryEl = copyBtn.closest(".llm-chat-entry");
+        if (entryEl) {
+          bubbleEl = entryEl.querySelector(
+            scope === "prompt" ? ".llm-chat-bubble--user" : ".llm-chat-bubble--ai"
+          );
+        }
+      }
+      const messageEl = bubbleEl?.querySelector(".llm-chat-msg");
+      textToCopy = (messageEl?.innerText || "").trim();
+    }
+    if (!textToCopy) return;
+
+    try {
+      await copyTextToClipboard(textToCopy);
+      setCopyButtonFeedback(copyBtn, true);
+    } catch (error) {
+      setCopyButtonFeedback(copyBtn, false);
+    }
+  });
+}
+
+window.addEventListener("resize", updateScrollBottomVisibility);
+
+
+function renderHistory() {
+  const container = historyContainerEl;
+  if (!container) return;
+
+  const wasNearBottom = isHistoryNearBottom(container);
   const previousScrollTop = container.scrollTop;
 
   container.innerHTML = "";
-  history.forEach((item) => {
+  history.forEach((item, itemIndex) => {
+    const isPendingResponse =
+      typeof item.response === "string" && item.response.includes("llm-wait__dot");
     const entry = document.createElement("div");
     entry.className = "llm-chat-entry";
     entry.innerHTML = `
       <div class="llm-chat-row llm-chat-row--user">
-        <div class="llm-chat-bubble llm-chat-bubble--user">
-          <div class="llm-chat-msg">${escapeHtml(item.prompt)}</div>
+        <div class="llm-chat-stack llm-chat-stack--user">
+          <div class="llm-chat-bubble llm-chat-bubble--user">
+            <div class="llm-chat-msg">${escapeHtml(item.prompt)}</div>
+          </div>
+          <div class="llm-chat-bubble__actions llm-chat-bubble__actions--outside">
+            <button
+              class="llm-copy-btn llm-copy-message"
+              type="button"
+              aria-label="Copy prompt"
+              title="Copy prompt"
+              data-copy-scope="prompt"
+              data-copy-default="Copy prompt"
+              data-copy-copied="Copied"
+              data-copy-failed="Failed"
+            >
+              ${copyIconMarkup}
+            </button>
+          </div>
         </div>
       </div>
       <div class="llm-chat-row llm-chat-row--ai">
         <div class="llm-chat-bubble llm-chat-bubble--ai">
           <div class="llm-chat-msg">${item.response}</div>
+          <div class="llm-chat-bubble__actions">
+            <button
+              class="llm-copy-btn llm-copy-message"
+              type="button"
+              aria-label="Copy response"
+              title="Copy response"
+              data-copy-scope="response"
+              data-response-index="${itemIndex}"
+              data-copy-default="Copy response"
+              data-copy-copied="Copied"
+              data-copy-failed="Failed"
+              ${isPendingResponse ? "disabled aria-disabled='true'" : ""}
+            >
+              ${copyIconMarkup}
+            </button>
+          </div>
         </div>
       </div>
     `;
     container.appendChild(entry);
   });
 
-  container.scrollTop = Math.min(
-    previousScrollTop,
-    Math.max(0, container.scrollHeight - container.clientHeight)
+  // Normalize AI tables after each render so layout stays responsive.
+  enhanceChatTables(container);
+  // Attach copy controls to AI-generated code blocks.
+  enhanceCodeCopyButtons(container);
 
-  );
+  if (wasNearBottom) {
+    container.scrollTop = container.scrollHeight;
+  } else {
+    container.scrollTop = Math.min(
+      previousScrollTop,
+      Math.max(0, container.scrollHeight - container.clientHeight)
+    );
+  }
   highlightGeneratedCode(container);
+  updateScrollBottomVisibility();
 
 }
  // llm code highlight
@@ -189,6 +495,23 @@ function renderHistory() {
     const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
     const csrfToken = csrfInput ? csrfInput.value : "";
     const maxInputHeight = 152;
+    let isSubmitting = false;
+    let activeRequestController = null;
+
+    const setSendButtonMode = (mode) => {
+      if (!sendBtn) return;
+      const isStopMode = mode === "stop";
+      // While generating, the same button becomes an explicit stop control.
+      sendBtn.classList.toggle("is-stop", isStopMode);
+      sendBtn.setAttribute("aria-label", isStopMode ? "Stop response" : "Send message");
+      sendBtn.setAttribute("title", isStopMode ? "Stop response" : "Send message");
+    };
+
+    const abortCurrentResponse = () => {
+      if (!isSubmitting || !activeRequestController) return false;
+      activeRequestController.abort();
+      return true;
+    };
 
     const autoGrow = () => {
       promptInput.style.height = "auto";
@@ -199,16 +522,31 @@ function renderHistory() {
     };
 
     autoGrow();
+    setSendButtonMode("send");
+
+    if (sendBtn) {
+      sendBtn.addEventListener("click", (event) => {
+        if (!isSubmitting) return;
+        // Stop is click-only by requirement; Enter key does not trigger cancellation.
+        event.preventDefault();
+        event.stopPropagation();
+        abortCurrentResponse();
+      });
+    }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      // Single-flight guard: block both button and Enter resubmits while awaiting AI response.
+      if (isSubmitting || (sendBtn && sendBtn.disabled)) return;
       const prompt = promptInput.value.trim();
       if (!prompt) return;
 
+      isSubmitting = true;
       promptInput.value = "";
       autoGrow();
       openAssistantSidebar();
-      sendBtn.disabled = true;
+      setSendButtonMode("stop");
+      activeRequestController = new AbortController();
       let aiResponse = waitingMarkup();
       history.push({ prompt: prompt, response: aiResponse });
       renderHistory();
@@ -222,6 +560,7 @@ function renderHistory() {
             "X-CSRFToken": csrfToken,
           },
           credentials: "same-origin",
+          signal: activeRequestController.signal,
           body: new URLSearchParams({ prompt: prompt }),
         });
 
@@ -243,11 +582,17 @@ function renderHistory() {
           aiResponse = data.generated || escapeHtml(data.error || "Something went wrong.");
         }
       } catch (error) {
-        aiResponse = "Network error. Please try again.";
+        if (error && error.name === "AbortError") {
+          aiResponse = "Response stopped.";
+        } else {
+          aiResponse = "Network error. Please try again.";
+        }
       } finally {
         history[history.length - 1].response = aiResponse;
         renderHistory();
-        sendBtn.disabled = false;
+        activeRequestController = null;
+        isSubmitting = false;
+        setSendButtonMode("send");
         promptInput.focus();
       }
     });
@@ -257,7 +602,12 @@ function renderHistory() {
     promptInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        form.dispatchEvent(new Event("submit"));
+        if (isSubmitting || (sendBtn && sendBtn.disabled)) return;
+        if (typeof form.requestSubmit === "function") {
+          form.requestSubmit(sendBtn || undefined);
+        } else {
+          form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        }
       }
     });
   }

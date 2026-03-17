@@ -1,11 +1,31 @@
 {% with ext=item.file.name|lower|slice:"-4:" %}
     {% if ext == ".pdf" %}
-        <div class="c-pdf-viewer">
-            <iframe
-                src="{% url 'student_file_view' item.id %}"
-                title="{{ item.title }}"
-                class="c-pdf-viewer__frame"
-            ></iframe>
+        <div
+            class="c-pdf-viewer js-pdf-viewer"
+            data-pdf-url="{% url 'student_file_view' item.id %}"
+            {% if content %}
+            data-content-id="{{ content.id }}"
+            data-progress-url="{% url 'track_content_progress' content.id %}"
+            data-start-page="{{ content_progress.current_page|default:1 }}"
+            data-max-page-seen="{{ content_progress.max_page_seen|default:1 }}"
+            {% endif %}
+        >
+            <div class="c-pdf-toolbar">
+                <span class="c-card__meta c-pdf-toolbar__meta">
+                    Page <strong class="js-pdf-current">1</strong> / <strong class="js-pdf-total">--</strong>
+                </span>
+                <span
+                    class="c-pdf-progress js-pdf-progress"
+                    role="progressbar"
+                    aria-label="PDF reading progress"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow="0"
+                >
+                    <span class="c-pdf-progress__label js-pdf-progress-label" aria-hidden="true">0%</span>
+                </span>
+            </div>
+            <div class="c-pdf-viewer__scroll js-pdf-scroll" aria-label="{{ item.title }}"></div>
         </div>
         <p class="c-resource-download">
             <a href="{% url 'student_file_download' item.id %}" class="c-btn c-btn--secondary" download>

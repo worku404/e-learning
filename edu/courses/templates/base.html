@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <!-- Notes editor styles (only for authenticated users). -->
+    {% if request.user.is_authenticated %}
+    <!-- Quill editor base theme stylesheet. -->
+    <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.7/quill.snow.css">
+    <!-- Notes panel custom styles. -->
+    <link rel="stylesheet" href="{% static 'notes/notes.css' %}">
+    {% endif %}
     <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
@@ -38,6 +45,18 @@
                     <span class="c-presence__dot" aria-hidden="true"></span>
                     <span class="c-presence__label">Online</span>
                     <strong class="c-presence__count" data-presence-count>--</strong>
+                    {% if request.user.is_staff or request.user.is_superuser %}
+                    <!-- Local-only developer control: request local stack stop from UI -->
+                    <button
+                        type="button"
+                        class="c-presence__stop"
+                        data-stop-server-btn
+                        aria-label="Stop local server and close this tab"
+                        title="Stop local server"
+                    >
+                        &times;
+                    </button>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>
@@ -58,6 +77,18 @@
             <nav class="topbar__actions" aria-label="Account actions">
                 {% if request.user.is_authenticated %}
                     <a href="{% url 'student_course_list' %}" class="c-btn c-btn--ghost">My Courses</a>
+                    <!-- Notes panel launcher button. -->
+                    <button
+                        id="notes-open-btn"
+                        class="c-btn c-btn--ghost"
+                        type="button"
+                        aria-label="Open notes panel"
+                        aria-controls="notes-panel"
+                        aria-expanded="false"
+                    >
+                        <!-- Button label for notes. -->
+                        Notes
+                    </button>
                 {% endif %}
                 {% if not request.user.is_authenticated %}
                     <a href="https://github.com/worku404/e-learning/blob/main/docs/usage.md" target="_blank" class="c-btn c-btn--ghost">Usage Guide
@@ -101,7 +132,9 @@
             {% if request.user.is_authenticated %}
             <section class="c-card c-progress-card" aria-label="Progress snapshot">
                 <h2 class="c-card__title">Weekly Focus</h2>
-                <p class="c-card__meta">Keep your momentum: complete 3 learning sessions this week.</p>
+                <!-- <p class="c-card__meta" style="color: #D9E2EC;">ምንም ከማድረግህ በፊት እናትህን አስብ።<br> የምትኖረው የወደፊት ህይወትህ ከሰው ልጆች ጋር ሳይሆን ከማይደክሙ machine ጋር የምትወዳደርበት መሆኑን አስታውስ።<br><strong> በቂ ብቻ ሳይሆን እጅግ የላቀ መሆን አለብህ😡</strong><br> ጊዜ የምታባክንበትም ሆነ የምታርፍበት ጊዜ የለም። ለእናትህ ስትል ጠንክረህ ማጥናት አለብህ። <br>
+                    <strong style="color: #FFD166; text-decoration: underline;">እማ ስለ ወደፊትህ ምን ትመኝ እንደነበር አስብ...</strong></p> -->
+                    <strong style="color: #FFD166; text-decoration: underline;">Remember..</strong>
                 <div class="c-progress"
                     role="progressbar"
                     aria-valuemin="0"
@@ -146,9 +179,22 @@
             {% endblock %}
             {% if request.user.is_authenticated %}
             <div class="c-presence c-presence--desktop" data-presence-badge role="status" aria-live="polite">
+                {% if request.user.is_staff or request.user.is_superuser %}
+                <!-- Local-only developer control: request local stack stop from UI -->
+                <button
+                    type="button"
+                    class="c-presence__stop"
+                    data-stop-server-btn
+                    aria-label="Stop local server and close this tab"
+                    title="Stop local server"
+                >
+                    &times;
+                </button>
+                {% endif %}
                 <span class="c-presence__dot" aria-hidden="true"></span>
                 <span class="c-presence__label">Online</span>
                 <strong class="c-presence__count" data-presence-count>--</strong>
+                
             </div>
             {% endif %}
 
@@ -201,6 +247,10 @@
             {% endif %}
         </aside>
     </main>
+    {% if request.user.is_authenticated %}
+    <!-- Notes panel markup included for authenticated users. -->
+    {% include "notes/panel.html" %}
+    {% endif %}
 {% if request.user.is_authenticated %}
 <section
     id="chat-notification-stack"
@@ -210,6 +260,12 @@
 ></section>
 {% endif %}
 {% block include_js %}{% endblock %}
+{% if request.user.is_authenticated %}
+<!-- Quill editor script for rich-text notes. -->
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js" defer></script>
+<!-- Notes panel behavior script. -->
+<script src="{% static 'notes/notes.js' %}" defer></script>
+{% endif %}
 <script>
     (function () {
         const themeStorageKey = "theme_preference";
@@ -372,6 +428,84 @@
         });
 
         window.addEventListener("beforeunload", stopHeartbeat);
+    })();
+
+    (function () {
+        // Collect all stop controls (desktop + mobile badges).
+        const stopButtons = Array.from(document.querySelectorAll("[data-stop-server-btn]"));
+
+        // Skip setup when current user cannot see stop controls.
+        if (!stopButtons.length) return;
+
+        // Resolve the backend endpoint that launches stop.ps1.
+        const stopUrl = "{% url 'stop_local_stack' %}";
+
+        // Read a single cookie value (used for CSRF token).
+        function getCookie(name) {
+            // Split browser cookie string into key/value entries.
+            const cookie = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith(name + "="));
+            // Decode and return cookie value when found.
+            return cookie ? decodeURIComponent(cookie.split("=")[1]) : "";
+        }
+
+        // Try to close this tab like Ctrl+W.
+        function closeCurrentTab() {
+            // Attempt close using browser-allowed script path first.
+            window.open("", "_self");
+            window.close();
+            // If blocked by browser policy, keep current page and ask for manual shortcut.
+            window.setTimeout(function () {
+                if (!window.closed) {
+                    window.focus();
+                    window.alert("Browser blocked automatic tab close. Press Ctrl+W to close this tab.");
+                }
+            }, 120);
+        }
+
+        // Ask backend to stop local services; use fetch first, beacon as fallback.
+        async function requestStop() {
+            // Read CSRF token for POST protection.
+            const csrfToken = getCookie("csrftoken");
+            try {
+                // Send authenticated POST request with keepalive.
+                await fetch(stopUrl, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    keepalive: true,
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                });
+                // Mark request path as attempted.
+                return true;
+            } catch (error) {
+                // Build form payload for sendBeacon fallback.
+                const formData = new FormData();
+                formData.append("csrfmiddlewaretoken", csrfToken);
+                // Queue beacon so request can continue during unload.
+                return navigator.sendBeacon(stopUrl, formData);
+            }
+        }
+
+        // Attach click handler to each stop button.
+        stopButtons.forEach((buttonEl) => {
+            buttonEl.addEventListener("click", async function () {
+                // Disable all stop buttons immediately to prevent duplicate clicks.
+                stopButtons.forEach((btn) => {
+                    btn.disabled = true;
+                    btn.textContent = "...";
+                    btn.title = "Stopping local server...";
+                });
+
+                // Trigger shutdown request.
+                await requestStop();
+                // Close tab (or navigate to blank page if browser blocks close).
+                closeCurrentTab();
+            });
+        });
     })();
 
     (function () {

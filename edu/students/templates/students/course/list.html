@@ -15,6 +15,22 @@
                     <p class="c-card__meta">
                         {{ course.modules.count }} modules available
                     </p>
+                    <div
+                        class="c-progress"
+                        role="progressbar"
+                        aria-label="Course completion progress"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow="{{ course.student_progress_percent|default:0|floatformat:0 }}"
+                    >
+                        <span
+                            class="c-progress__bar"
+                            style="width: {{ course.student_progress_percent|default:0 }}%;"
+                        ></span>
+                    </div>
+                    <p class="c-card__meta">
+                        {{ course.student_progress_percent|default:0|floatformat:0 }}%
+                    </p>
                     <div class="c-card__actions">
                         <a href="{% url 'student_course_detail' course.id %}" class="c-btn c-btn--primary">
                             Continue learning
@@ -33,3 +49,4 @@
         </section>
     </section>
 {% endblock %}
+

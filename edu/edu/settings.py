@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     "students.apps.StudentsConfig",
     'assistant.apps.AssistantConfig',
     'chat.apps.ChatConfig',
-    
+    "notes.apps.NotesConfig",
 
     # Third-party apps
     "embed_video",   # Embed and render video content in templates/models

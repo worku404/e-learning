@@ -1,0 +1,192 @@
+<!-- Notes panel container (hidden until opened). -->
+<section
+    id="notes-panel"
+    class="notes-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-hidden="true"
+    data-notes-panel
+    data-notes-list-url="{% url 'notes_list' %}"
+    data-notes-detail-url-template="{% url 'notes_detail' 0 %}"
+>
+    <!-- Notes panel header row. -->
+    <header class="notes-panel__header">
+        <!-- Sidebar toggle (hamburger) button. -->
+        <button
+            type="button"
+            class="notes-panel__hamburger"
+            data-notes-sidebar-toggle
+            aria-label="Toggle notes sidebar"
+            aria-controls="notes-sidebar"
+            aria-expanded="false"
+        >
+            <!-- Hamburger icon for sidebar toggle. -->
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                <line x1="4" y1="7" x2="20" y2="7"></line>
+                <line x1="4" y1="12" x2="20" y2="12"></line>
+                <line x1="4" y1="17" x2="20" y2="17"></line>
+            </svg>
+        </button>
+        <!-- Title and color toolbar area. -->
+        <div class="notes-panel__heading">
+            <!-- Main panel title. -->
+            <h2 class="notes-panel__title">Notes</h2>
+            <!-- Text color buttons (replace shortcut hint). -->
+            <div class="notes-panel__colors" role="toolbar" aria-label="Text color">
+                <!-- White text button. -->
+                <button
+                    type="button"
+                    class="notes-color-btn"
+                    data-notes-color="#ffffff"
+                    style="--swatch:#ffffff; --swatch-text:#1b2630;"
+                    aria-label="Text color white"
+                    title="White text"
+                >
+                    <!-- Icon label for color button. -->
+                    <span class="notes-color-btn__icon">A</span>
+                </button>
+                <!-- Green text button. -->
+                <button
+                    type="button"
+                    class="notes-color-btn"
+                    data-notes-color="#2ecc71"
+                    style="--swatch:#2ecc71; --swatch-text:#0b1c12;"
+                    aria-label="Text color green"
+                    title="Green text"
+                >
+                    <!-- Icon label for color button. -->
+                    <span class="notes-color-btn__icon">A</span>
+                </button>
+                <!-- Blue text button. -->
+                <button
+                    type="button"
+                    class="notes-color-btn"
+                    data-notes-color="#3498db"
+                    style="--swatch:#3498db; --swatch-text:#0b1925;"
+                    aria-label="Text color blue"
+                    title="Blue text"
+                >
+                    <!-- Icon label for color button. -->
+                    <span class="notes-color-btn__icon">A</span>
+                </button>
+                <!-- Yellow text button. -->
+                <button
+                    type="button"
+                    class="notes-color-btn"
+                    data-notes-color="#f1c40f"
+                    style="--swatch:#f1c40f; --swatch-text:#1c1500;"
+                    aria-label="Text color yellow"
+                    title="Yellow text"
+                >
+                    <!-- Icon label for color button. -->
+                    <span class="notes-color-btn__icon">A</span>
+                </button>
+                <!-- Red text button. -->
+                <button
+                    type="button"
+                    class="notes-color-btn"
+                    data-notes-color="#e74c3c"
+                    style="--swatch:#e74c3c; --swatch-text:#1d0a08;"
+                    aria-label="Text color red"
+                    title="Red text"
+                >
+                    <!-- Icon label for color button. -->
+                    <span class="notes-color-btn__icon">A</span>
+                </button>
+            </div>
+        </div>
+        <!-- Header action buttons (delete/close). -->
+        <div class="notes-panel__actions">
+            <!-- Delete current note button. -->
+            <button
+                type="button"
+                class="notes-panel__delete"
+                data-notes-delete
+                aria-label="Delete current note"
+                disabled
+            >
+                <!-- Delete button label. -->
+                Delete
+            </button>
+            <!-- Close panel button. -->
+            <button
+                type="button"
+                class="notes-panel__close"
+                data-notes-close
+                aria-label="Close notes panel"
+            >
+                <!-- Close button label. -->
+                Close
+            </button>
+        </div>
+    </header>
+
+    <!-- Notes panel body with sidebar + editor. -->
+    <div class="notes-panel__body">
+        <!-- Notes sidebar with list of saved notes. -->
+        <aside id="notes-sidebar" class="notes-sidebar" data-notes-sidebar aria-hidden="true">
+            <!-- Sidebar toolbar with title + clear filter action. -->
+            <div class="notes-sidebar__toolbar">
+                <!-- Sidebar title. -->
+                <h3 class="notes-sidebar__title">All notes</h3>
+                <!-- Clear tag filter button. -->
+                <button
+                    type="button"
+                    class="notes-sidebar__clear"
+                    data-notes-clear-filter
+                    hidden
+                >
+                    <!-- Clear button label. -->
+                    Clear filter
+                </button>
+            </div>
+            <!-- Active filter label. -->
+            <p class="notes-sidebar__filter" data-notes-filter-label hidden></p>
+            <!-- Notes list container. -->
+            <ul class="notes-sidebar__list" data-notes-list role="list"></ul>
+            <!-- Empty state message when no notes exist. -->
+            <p class="notes-sidebar__empty" data-notes-empty hidden>No notes yet.</p>
+        </aside>
+
+        <!-- Editor surface wrapper. -->
+        <div class="notes-editor-wrap">
+            <!-- Quill editor mount point. -->
+            <div id="notes-editor" class="notes-editor"></div>
+        </div>
+    </div>
+
+    <!-- Save/exit modal for unsaved notes. -->
+    <div class="notes-save-modal" data-notes-save-modal hidden>
+        <!-- Modal card content. -->
+        <div class="notes-save-card" role="dialog" aria-modal="true" aria-label="Save note">
+            <!-- Modal title. -->
+            <h3 class="notes-save-title">Save note</h3>
+            <!-- Title input label and field. -->
+            <label class="notes-save-field">
+                <!-- Title label text. -->
+                Title
+                <!-- Title input. -->
+                <input type="text" data-notes-title-input placeholder="Enter note title">
+            </label>
+            <!-- Tag input label and field. -->
+            <label class="notes-save-field">
+                <!-- Tag label text. -->
+                Tag (optional)
+                <!-- Tag input. -->
+                <input type="text" data-notes-tag-input placeholder="e.g. revision">
+            </label>
+            <!-- Error message placeholder. -->
+            <p class="notes-save-error" data-notes-save-error hidden></p>
+            <!-- Modal action buttons. -->
+            <div class="notes-save-actions">
+                <!-- Save button. -->
+                <button type="button" class="notes-save-btn" data-notes-save>Save</button>
+                <!-- Exit button. -->
+                <button type="button" class="notes-exit-btn" data-notes-exit>Exit</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Backdrop overlay for the notes panel. -->
+<div class="notes-backdrop" data-notes-backdrop hidden></div>

@@ -16,6 +16,16 @@
     --color-focus-ring: color-mix(in srgb, var(--color-accent) 65%, white);
     --color-shadow: 15 23 42;
 
+    --llm-text: var(--color-text);
+    --llm-bold: var(--color-text);
+    --llm-bold-underline: #ECC361;
+    --llm-heading: #1678DE;
+    --llm-inline-code-text: #E1BB5F;
+    --llm-inline-code-bg: #152130;
+    --llm-inline-code-border: #152130;
+    --llm-code-block-bg: color-mix(in srgb, #212121 70%);
+    --llm-code-block-border: var(--color-border);
+
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
@@ -40,6 +50,12 @@
 
     --rail-left: 280px;
     --rail-right: 380px;
+    /* Compact rail widths used while the AI sidebar is open. */
+    --rail-left-compact: 232px;
+    --course-modules-min: 220px;
+    --course-modules-max: 280px;
+    --course-modules-min-compact: 190px;
+    --course-modules-max-compact: 240px;
     --topbar-height: 74px;
     --main-max: 1100px;
     --reading-max: 65ch;
@@ -66,4 +82,9 @@ body.theme-dark {
     --color-surface-soft: #172434;
     --color-focus-ring: color-mix(in srgb, var(--color-accent) 70%, white);
     --color-shadow: 0 0 0;
+
+    --llm-text: #c7d3e1;
+    --llm-bold: #2B9D67;
+    --llm-bold-underline: transparent;
+    --llm-heading: #1678DE;
 }

@@ -426,9 +426,10 @@ body.assistant-sidebar-open .assistance-close {
 body.assistant-sidebar-open .assistance {
     position: fixed;
     top: var(--assistant-top-offset, var(--topbar-height));
-    right: var(--space-4);
+    /* Flush the AI panel to the viewport edge (no right-side gap). */
+    right: 0;
     width: var(--rail-right);
-    max-width: calc(100vw - (2 * var(--space-4)));
+    max-width: 100vw;
     height: calc(100vh - var(--assistant-top-offset, var(--topbar-height)));
     margin: 0;
     padding: var(--space-2) var(--space-3) var(--space-3);
@@ -439,6 +440,19 @@ body.assistant-sidebar-open .assistance {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+}
+
+body.theme-dark.assistant-sidebar-open .assistance {
+    /* Use one pure-black canvas so panel + AI response area are visually unified. */
+    background: #000000;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+}
+
+body.theme-dark.assistant-sidebar-open .assistance-toolbar {
+    /* Keep toolbar readable after removing panel padding. */
+    padding: var(--space-2) var(--space-3) 0 var(--space-3);
 }
 
 .llm-history {
@@ -457,8 +471,21 @@ body.assistant-sidebar-open .llm-history {
     margin-bottom: 0;
 }
 
+body.theme-dark.assistant-sidebar-open .llm-history {
+    /* Remove right-side gutter so AI output reaches the sidebar edge. */
+    padding-right: 10px;
+    padding-left: 0;
+}
+
 body.assistant-sidebar-open .llm-form {
     margin-top: auto;
+    /* top-left | top-right | bottom-right | bottom-left */
+    border-radius: 25px 25px 0px 0px;
+}
+
+body.theme-dark.assistant-sidebar-open .llm-form {
+    /* Preserve composer background while keeping it inset from panel edges. */
+    padding: 0 var(--space-3) var(--space-3);
 }
 
 .llm-chat-entry {
@@ -471,6 +498,7 @@ body.assistant-sidebar-open .llm-form {
 .llm-chat-row {
     display: flex;
     min-width: 0;
+    position: relative;
 }
 
 .llm-chat-row--user {
@@ -479,6 +507,17 @@ body.assistant-sidebar-open .llm-form {
 
 .llm-chat-row--ai {
     justify-content: flex-start;
+}
+
+body.theme-dark.assistant-sidebar-open .llm-chat-row--ai .llm-chat-bubble {
+    /* Match AI bubble surface to panel background and remove separator border. */
+    width: 100%;
+    margin: 0;
+    padding: var(--space-3) 0 var(--space-2) var(--space-3);
+    background: #000000;
+    border-color: transparent;
+    border-radius: 0;
+    box-shadow: none;
 }
 /* special chars */
 
@@ -509,15 +548,150 @@ body.assistant-sidebar-open .llm-form {
     overflow: hidden;
 }
 
-.llm-chat-bubble--user {
-    background: var(--color-secondary-surface);
-    border-color: color-mix(in srgb, var(--color-primary) 42%, var(--color-border));
+.llm-chat-stack--user {
+    display: grid;
+    justify-items: end;
+    max-width: 100%;
 }
 
+.llm-chat-bubble__actions {
+    /* Keep per-message controls at the bottom-right of each bubble. */
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.14s ease;
+}
+
+.llm-chat-bubble__actions--outside {
+    margin-top: 0.2rem;
+}
+
+.llm-copy-btn {
+    width: auto;
+    height: auto;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: var(--color-text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    line-height: 1;
+    transition: color 0.14s ease, opacity 0.14s ease;
+}
+
+.llm-copy-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.llm-copy-btn__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.llm-copy-btn__icon--check {
+    display: none;
+}
+
+.llm-copy-btn:hover:not(:disabled) {
+    color: var(--color-text);
+}
+
+.llm-copy-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.llm-copy-btn.is-copied {
+    color: #2D9D64;
+}
+
+.llm-copy-btn.is-copied .llm-copy-btn__icon--copy {
+    display: none;
+}
+
+.llm-copy-btn.is-copied .llm-copy-btn__icon--check {
+    display: inline-flex;
+}
+
+.llm-copy-btn.is-copy-failed {
+    color: #ef6363;
+}
+
+.llm-chat-row:hover .llm-chat-bubble__actions,
+.llm-chat-row:focus-within .llm-chat-bubble__actions {
+    /* Reveal copy icon when hovering anywhere on full row width. */
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.llm-chat-bubble--user {
+    background-color: var(--color-secondary-surface);
+    /* top-left | top-right | bottom-right | bottom-left */
+    border-radius: 10px 5px 0px 10px;
+    margin-left: 30px;
+    border: 0;
+    /* border-color: color-mix(in srgb, var(--color-primary) 42%, var(--color-border)); */
+}
+
+body.theme-dark .llm-copy-btn {
+    border-color: #2f415a;
+    color: #a7bdd6;
+}
+
+body.theme-dark .llm-copy-btn:hover:not(:disabled) {
+    color: #ecf4ff;
+}
+
+.llm-code-block-wrap {
+    /* Keep generated code and its copy control grouped together. */
+    display: grid;
+    gap: 0;
+}
+
+.llm-code-block-wrap .llm-copy-code {
+    justify-self: end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.14s ease;
+}
+
+.llm-code-block-wrap:hover .llm-copy-code,
+.llm-code-block-wrap:focus-within .llm-copy-code {
+    /* Reveal code copy icon when hovering the full code block area. */
+    opacity: 1;
+    pointer-events: auto;
+}
 .llm-chat-msg {
     line-height: 1.55;
     overflow-wrap: anywhere;
     word-break: break-word;
+}
+
+/* Use Iosevka for assistant responses while keeping safe monospace fallbacks. */
+.llm-chat-row--ai .llm-chat-msg {
+    /* Soften AI text brightness on the pure-black panel to reduce eye strain. */
+    font-family: "Iosevka", "Cascadia Mono", "Fira Code", "JetBrains Mono",
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    color: var(--llm-text);
+}
+
+.llm-chat-row--ai .llm-chat-msg strong,
+.llm-chat-row--ai .llm-chat-msg b {
+    /* Keep emphasis visible, but still less harsh than pure white. */
+    color: var(--llm-bold);
+    text-decoration-line: underline;
+    text-decoration-color: var(--llm-bold-underline);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 2px;
 }
 
 .llm-chat-msg > * {
@@ -553,6 +727,7 @@ body.assistant-sidebar-open .llm-form {
     font-size: 1.02rem;
     line-height: 1.3;
     font-weight: 650;
+    color: var(--llm-heading);
 }
 
 .llm-chat-msg ul,
@@ -573,8 +748,9 @@ body.assistant-sidebar-open .llm-form {
 }
 
 .llm-chat-msg :not(pre) > code {
-    background: color-mix(in srgb, var(--color-surface-soft) 78%, var(--color-surface));
-    border: 1px solid var(--color-border);
+    color: var(--llm-inline-code-text);
+    background: var(--llm-inline-code-bg);
+    border: 1px solid var(--llm-inline-code-border);
     border-radius: 6px;
     padding: 0.08rem 0.33rem;
     white-space: break-spaces;
@@ -585,8 +761,8 @@ body.assistant-sidebar-open .llm-form {
     overflow: auto;
     white-space: pre-wrap;
     word-break: break-word;
-    background: color-mix(in srgb, var(--color-surface-soft) 70%, var(--color-surface));
-    border: 1px solid var(--color-border);
+    background: var(--llm-code-block-bg);
+    border: 1px solid var(--llm-code-block-border);
     border-radius: 8px;
     padding: 0.6rem 0.7rem;
 }
@@ -598,19 +774,111 @@ body.assistant-sidebar-open .llm-form {
     white-space: inherit;
 }
 
-.llm-chat-msg table {
+/* Keep readable font sizes and scroll tables horizontally when needed. */
+.llm-chat-msg .llm-chat-table-wrap {
     width: 100%;
-    display: block;
+    max-width: 100%;
     overflow-x: auto;
-    border-collapse: collapse;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    margin: 0;
 }
 
-.llm-chat-msg th,
-.llm-chat-msg td {
+.llm-chat-msg .llm-chat-table {
+    width: max(100%, 680px);
+    min-width: 680px;
+    border-collapse: collapse;
+    table-layout: auto;
+    font-size: 1rem;
+}
+
+.llm-chat-msg .llm-chat-table th,
+.llm-chat-msg .llm-chat-table td {
     border: 1px solid var(--color-border);
-    padding: 0.35rem 0.45rem;
+    padding: 0.42rem 0.52rem;
     text-align: left;
     vertical-align: top;
+}
+
+.llm-chat-msg .llm-chat-table th {
+    /* Prevent awkward letter-by-letter header breaks. */
+    font-weight: 700;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+    hyphens: none;
+}
+
+.llm-chat-msg .llm-chat-table td {
+    /* Allow natural wrapping while handling long tokens safely. */
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Very small screens: only slight compaction, avoid hard font shrinking. */
+@media (max-width: 560px) {
+    .llm-chat-msg .llm-chat-table {
+        min-width: 620px;
+        font-size: 0.94rem;
+    }
+
+    .llm-chat-msg .llm-chat-table th,
+    .llm-chat-msg .llm-chat-table td {
+        padding: 0.38rem 0.47rem;
+    }
+}
+
+/* Tight layout fallback: stack rows as cards when table readability collapses. */
+@media (max-width: 420px) {
+    .llm-chat-msg .llm-chat-table-wrap {
+        overflow-x: visible;
+    }
+
+    .llm-chat-msg .llm-chat-table,
+    .llm-chat-msg .llm-chat-table tbody,
+    .llm-chat-msg .llm-chat-table tr,
+    .llm-chat-msg .llm-chat-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .llm-chat-msg .llm-chat-table {
+        min-width: 0;
+        font-size: 0.95rem;
+    }
+
+    .llm-chat-msg .llm-chat-table thead {
+        display: none;
+    }
+
+    .llm-chat-msg .llm-chat-table tr {
+        margin-bottom: 0.58rem;
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        overflow: hidden;
+        background: color-mix(in srgb, var(--color-surface) 92%, var(--color-surface-soft));
+    }
+
+    .llm-chat-msg .llm-chat-table td {
+        border: 0;
+        border-top: 1px solid var(--color-border);
+        padding: 0.4rem 0.55rem;
+    }
+
+    .llm-chat-msg .llm-chat-table td:first-child {
+        border-top: 0;
+    }
+
+    .llm-chat-msg .llm-chat-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.16rem;
+        font-size: 0.78em;
+        font-weight: 700;
+        color: var(--color-text-muted);
+        letter-spacing: 0.01em;
+    }
 }
 
 .llm-chat-msg hr {
@@ -621,6 +889,53 @@ body.assistant-sidebar-open .llm-form {
 
 .llm-form {
     display: block;
+    position: relative;
+}
+
+.llm-scroll-bottom {
+    /* Float control just above the composer, aligned to the lower-right corner. */
+    position: absolute;
+    right: 0.35rem;
+    top: -2.75rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-surface) 88%, #101522);
+    color: var(--color-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(6px);
+    transition: opacity 0.14s ease, transform 0.14s ease, background-color 0.14s ease;
+    z-index: 3;
+}
+
+.llm-scroll-bottom.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.llm-scroll-bottom:hover {
+    background: color-mix(in srgb, var(--color-surface-soft) 74%, var(--color-surface));
+}
+
+.llm-scroll-bottom svg {
+    width: 16px;
+    height: 16px;
+}
+
+body.theme-dark .llm-scroll-bottom {
+    background: #111827;
+    border-color: #2f415a;
+    color: #e8f2ff;
+}
+
+body.theme-dark .llm-scroll-bottom:hover {
+    background: #1b2a3f;
 }
 
 .llm-composer {
@@ -714,12 +1029,22 @@ body:not(.theme-dark) .llm-composer{
     align-items: center;
     justify-content: center;
     padding: 0;
-    transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.1s ease;
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.1s ease;
 }
 
 .llm-btn svg {
     width: 16px;
     height: 16px;
+}
+
+.llm-send-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.llm-send-icon--stop {
+    display: none;
 }
 
 .llm-btn--send {
@@ -735,6 +1060,27 @@ body:not(.theme-dark) .llm-composer{
 
 .llm-btn--send:active:not(:disabled) {
     transform: translateY(1px);
+}
+
+.llm-btn--send.is-stop {
+    /* Stop state palette requested: mint circle with deep-blue center glyph. */
+    background: #6FD992;
+    border-color: #6FD992;
+    color: #07122C;
+}
+
+.llm-btn--send.is-stop:hover:not(:disabled) {
+    /* Keep same visual family on hover while preserving contrast. */
+    background: color-mix(in srgb, #6FD992 90%, white);
+    border-color: color-mix(in srgb, #6FD992 90%, white);
+}
+
+.llm-btn--send.is-stop .llm-send-icon--send {
+    display: none;
+}
+
+.llm-btn--send.is-stop .llm-send-icon--stop {
+    display: inline-flex;
 }
 
 .llm-btn:disabled {
@@ -816,7 +1162,8 @@ body.theme-dark #assistant-close-btn  {
     width: 6px;
 }
 #chat::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.15);
+    /* background: rgba(255,255,255,0.15); */
+    background-color: #000000;
     border-radius: 10px;
 }
 
@@ -1062,7 +1409,7 @@ body:not(.theme-dark) #chat-message-input:focus {
 }
 
 body:not(.theme-dark) #chat::-webkit-scrollbar-thumb {
-    background: rgba(255, 158, 197, 0.45);
+    background: #FFFFFF;
 }
 /* Light mode (default) */
 .course-chat-link {
@@ -1180,14 +1527,173 @@ body:not(.theme-dark) .course-time__value {
 .c-pdf-viewer {
   width: 100%;
   margin: 0 0 0.75rem 0;
+  display: grid;
+  gap: 0.6rem;
 }
 
-.c-pdf-viewer__frame {
-  display: block;
+.c-pdf-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.c-pdf-toolbar__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.c-pdf-progress {
+  --pdf-progress: 0%;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+  background:
+    radial-gradient(circle at center, var(--color-surface) 58%, transparent 60%),
+    conic-gradient(
+      color-mix(in srgb, var(--color-primary) 82%, #ffffff) var(--pdf-progress),
+      color-mix(in srgb, var(--color-border) 75%, transparent) 0
+    );
+  color: var(--color-text-muted);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.c-pdf-progress__label {
+  font-size: 0.53rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.c-pdf-progress.is-complete {
+  border-color: color-mix(in srgb, #1fbf75 60%, var(--color-border));
+  color: #1fbf75;
+}
+
+.c-pdf-progress.is-complete .c-pdf-progress__label {
+  font-size: 0.76rem;
+}
+
+.c-pdf-viewer__scroll {
   width: 100%;
-  min-height: 85vh;
+  max-width: 100%;
+  min-height: 70vh;
+  max-height: 82vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
   border: 1px solid var(--border-subtle, #2a4b6a);
   border-radius: 8px;
+  background: #0b1320;
+}
+
+.c-pdf-page {
+  display: block;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 1 / 1.4142;
+  margin: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.c-pdf-page + .c-pdf-page {
+  margin-top: 0.75rem;
+}
+
+.c-pdf-page.is-rendered {
+  aspect-ratio: auto;
+}
+
+.c-pdf-page__canvas {
+  display: block;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+  background: #ffffff;
+}
+
+.c-pdf-page.is-rendered .c-pdf-page__canvas {
+  height: auto;
+}
+
+.c-pdf-page__text-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  line-height: 1;
+  pointer-events: auto;
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.c-pdf-page__text-layer span,
+.c-pdf-page__text-layer br {
+  position: absolute;
+  color: rgba(0, 0, 0, 0.01);
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.01);
+  white-space: pre;
+  transform-origin: 0 0;
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.c-pdf-page__text-layer::selection,
+.c-pdf-page__text-layer *::selection {
+  background: rgba(66, 133, 244, 0.35) !important;
+}
+
+.c-pdf-page__text-layer *::-moz-selection {
+  background: rgba(66, 133, 244, 0.35) !important;
+  color: rgba(0, 0, 0, 0.01);
+}
+
+/* Dark-mode PDF surface:
+   use a warm dark-paper treatment instead of pure black/white contrast so long
+   reading sessions feel less harsh while the text remains distinct. */
+body.theme-dark .c-pdf-viewer__scroll {
+  /* Use pure black for maximum contrast. */
+  background: #000000;
+  /* Darken the border to match black background. */
+  border-color: #000000;
+}
+
+body.theme-dark .c-pdf-page {
+  /* Use pure black page background. */
+  background: #000000;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 14px 30px rgba(2, 6, 12, 0.28);
+}
+
+body.theme-dark .c-pdf-page__canvas {
+  /* Increase contrast and darken background for stronger readability. */
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.25) sepia(0) saturate(1);
+}
+
+body.theme-dark .c-pdf-page__text-layer::selection,
+body.theme-dark .c-pdf-page__text-layer *::selection {
+  background: rgba(255, 211, 107, 0.44) !important;
+}
+
+body.theme-dark .c-pdf-page__text-layer *::-moz-selection {
+  background: rgba(255, 211, 107, 0.44) !important;
 }
 .c-focus-modules {
     display: grid;
@@ -1309,6 +1815,58 @@ body.theme-dark .c-focus-modules__time {
     letter-spacing: 0.01em;
 }
 
+/* Small inline stop control shown next to presence counter for local admin use. */
+.c-presence__stop {
+    /* Keep button compact inside the badge row. */
+    min-width: 22px;
+    min-height: 22px;
+    width: 22px;
+    height: 22px;
+    /* Render a clear close glyph. */
+    line-height: 1;
+    font-size: 0.92rem;
+    font-weight: 800;
+    /* Use pill-like shape to match badge language. */
+    border-radius: 999px;
+    border: 1px solid;
+    /* Center glyph both axes. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* Remove default button chrome. */
+    padding: 0;
+    margin-right: 10px;
+    cursor: pointer;
+    background: transparent;
+}
+
+/* Dark theme stop button colors. */
+.theme-dark .c-presence__stop {
+    color: #ffd6d6;
+    border-color: rgba(255, 120, 120, 0.45) !important;
+    background: rgba(255, 84, 84, 0.18) !important;
+}
+
+/* Light theme stop button colors. */
+body:not(.theme-dark) .c-presence__stop {
+    color: #8b1e1e;
+    border-color: #e9a0a0;
+    background: #ffe9e9;
+}
+
+/* Hover/focus feedback for quick discoverability. */
+.c-presence__stop:hover,
+.c-presence__stop:focus-visible {
+    filter: brightness(1.05);
+    transform: translateY(-0.5px);
+}
+
+/* Disabled state while stop request is being sent. */
+.c-presence__stop:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 .c-presence--desktop {
     width: 100%;
     margin-top: auto;
@@ -1366,6 +1924,15 @@ body:not(.theme-dark) .c-presence {
     .c-presence--mobile .c-presence__count {
         font-size: 0.76rem;
         letter-spacing: 0;
+    }
+
+    /* Keep stop control proportional on compact mobile badge. */
+    .c-presence--mobile .c-presence__stop {
+        min-width: 18px;
+        min-height: 18px;
+        width: 18px;
+        height: 18px;
+        font-size: 0.78rem;
     }
 }
 

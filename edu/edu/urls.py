@@ -37,6 +37,8 @@ urlpatterns = [
     path('assistant/', include('assistant.urls', namespace='assistant')),
     path('api/', include('courses.api.urls', namespace='api')),
     path('chat/', include('chat.urls', namespace='chat')),
+    path('notes/', include('notes.urls')),
+    
 ]
 
 # if settings.DEBUG:
