@@ -57,6 +57,18 @@ r = redis.Redis(
 )
 
 
+# Module-level flag that memoises a True result from the table-existence check.
+# Only True is cached: once the table exists it cannot disappear, so subsequent
+# calls skip the expensive schema query entirely.  False is deliberately never
+# cached so pages recover automatically once the pending migration is applied,
+# without requiring a server restart.
+#
+# Thread-safety: CPython's GIL makes the boolean assignment atomic, so a race
+# between threads only causes at most N redundant queries at cold-start — never
+# corrupted state.  A lock is omitted to avoid overhead on the fast cached path.
+_course_progress_table_exists: bool = False
+
+
 def _course_progress_table_ready() -> bool:
     """
     Guard against runtime crashes when code is deployed before migrations run.
@@ -66,9 +78,19 @@ def _course_progress_table_ready() -> bool:
     - If migration 0003 is not applied yet, querying that model raises:
       `ProgrammingError: relation "students_courseprogress" does not exist`.
     - This check lets pages render with a safe fallback until migrations are applied.
+
+    The result is memoised at the module level once the table is confirmed to
+    exist, so the expensive ``connection.introspection.table_names()`` schema
+    query is only performed once per worker process lifetime.
     """
+    global _course_progress_table_exists
+    if _course_progress_table_exists:
+        return True
     try:
-        return CourseProgress._meta.db_table in connection.introspection.table_names()
+        result = CourseProgress._meta.db_table in connection.introspection.table_names()
+        if result:
+            _course_progress_table_exists = True
+        return result
     except (ProgrammingError, OperationalError):
         return False
 
